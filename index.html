@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vibecoding for Granola Teams</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --green: #1D9E75; --green-dark: #0F6E56; --red: #A32D2D;
+    --bg: #f8f8f6; --bg2: #f1f0ed; --bg3: #e8e7e3;
+    --text: #1a1a18; --text2: #5a5a56; --text3: #9a9a94;
+    --border: rgba(0,0,0,0.1); --border2: rgba(0,0,0,0.18);
+    --success-bg: #e8f5ef; --success-border: rgba(29,158,117,0.4); --success-text: #0F6E56;
+    --danger-bg: #fce8e8; --danger-border: rgba(163,45,45,0.4); --danger-text: #A32D2D;
+    --info-bg: #e8f0fb; --info-text: #1a4fa0;
+    --radius: 8px; --radius-lg: 12px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1c1c1a; --bg2: #252523; --bg3: #2e2e2b;
+      --text: #f0f0ec; --text2: #a0a09a; --text3: #666662;
+      --border: rgba(255,255,255,0.1); --border2: rgba(255,255,255,0.18);
+      --success-bg: #0d2e20; --success-text: #4dd4a0;
+      --danger-bg: #2e1212; --danger-text: #f08080;
+      --info-bg: #0d1f3c; --info-text: #7aabf5;
+    }
+  }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; font-size: 14px; line-height: 1.6; }
+
+  /* SIDEBAR */
+  #sidebar { width: 220px; flex-shrink: 0; background: var(--bg2); border-right: 0.5px solid var(--border); display: flex; flex-direction: column; overflow: hidden; }
+  #sidebar-header { padding: 14px 14px 10px; }
+  #sidebar-title { font-size: 12px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+  #sidebar-progress-label { font-size: 11px; color: var(--text2); margin-bottom: 8px; }
+  #progress-bar { height: 3px; background: var(--bg3); border-radius: 2px; overflow: hidden; }
+  #progress-fill { height: 100%; background: var(--green); border-radius: 2px; transition: width 0.4s; width: 0%; }
+  #nav { flex: 1; overflow-y: auto; padding: 0 6px 8px; }
+  .nav-btn { display: flex; align-items: flex-start; gap: 7px; width: 100%; padding: 5px 7px; border-radius: var(--radius); border: none; cursor: pointer; text-align: left; background: transparent; margin-bottom: 1px; transition: background 0.15s; }
+  .nav-btn:hover { background: var(--bg3); }
+  .nav-btn.active { background: var(--bg3); }
+  .nav-dot { width: 16px; height: 16px; border-radius: 50%; flex-shrink: 0; margin-top: 2px; display: flex; align-items: center; justify-content: center; font-size: 8px; font-weight: 600; background: var(--bg3); color: var(--text3); }
+  .nav-dot.done { background: var(--green); color: #fff; }
+  .nav-dot.active { background: var(--info-bg); color: var(--info-text); }
+  .nav-label { font-size: 11px; font-weight: 400; color: var(--text2); line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .nav-btn.active .nav-label { font-weight: 600; color: var(--text); }
+  #glossary-btn { margin: 8px; padding: 7px 10px; border: 0.5px solid var(--border2); border-radius: var(--radius); background: transparent; cursor: pointer; font-size: 11px; color: var(--text2); text-align: left; width: calc(100% - 16px); border-top: 0.5px solid var(--border); margin-top: 0; border-radius: 0; border-left: none; border-right: none; border-bottom: none; padding: 10px 14px; }
+  #glossary-btn:hover { background: var(--bg3); }
+
+  /* MAIN */
+  #main { flex: 1; overflow-y: auto; padding: 28px 32px; }
+  #content { max-width: 660px; margin: 0 auto; }
+  #chapter-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 4px; }
+  #chapter-title { font-size: 21px; font-weight: 600; color: var(--text); margin-bottom: 3px; }
+  #chapter-subtitle { font-size: 13px; color: var(--text2); margin-bottom: 18px; }
+
+  /* TABS */
+  #tabs { display: flex; border-bottom: 0.5px solid var(--border); margin-bottom: 18px; }
+  .tab-btn { padding: 6px 14px; border: none; background: transparent; cursor: pointer; font-size: 13px; font-weight: 400; color: var(--text2); border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s; }
+  .tab-btn.active { font-weight: 600; color: var(--text); border-bottom-color: var(--green); }
+
+  /* LESSON */
+  #granola-callout { background: var(--bg2); border-left: 3px solid var(--green); border-radius: 0 var(--radius) var(--radius) 0; padding: 10px 14px; margin-bottom: 14px; }
+  #granola-callout-label { font-size: 10px; font-weight: 600; color: var(--green-dark); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 3px; }
+  #granola-text { font-size: 13px; color: var(--text); line-height: 1.65; }
+  #lesson-content { font-size: 14px; color: var(--text); line-height: 1.8; margin-bottom: 14px; white-space: pre-line; }
+  .table-wrap { overflow-x: auto; margin-bottom: 16px; }
+  .table-title { font-size: 10px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 7px; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th { text-align: left; padding: 6px 10px; background: var(--bg2); border-bottom: 0.5px solid var(--border2); color: var(--text2); font-weight: 600; white-space: nowrap; }
+  td { padding: 7px 10px; border-bottom: 0.5px solid var(--border); color: var(--text2); vertical-align: top; line-height: 1.5; }
+  td:first-child { color: var(--text); }
+  #rec-box { background: var(--bg); border: 0.5px solid var(--green); border-radius: var(--radius-lg); padding: 11px 14px; margin-bottom: 14px; }
+  #rec-label { font-size: 10px; font-weight: 600; color: var(--green-dark); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+  #rec-text { font-size: 13px; color: var(--text); line-height: 1.65; }
+  #key-term-box { background: var(--bg2); border: 0.5px solid var(--border2); border-radius: var(--radius-lg); padding: 10px 14px; margin-bottom: 18px; }
+  #key-term-label { font-size: 10px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+  #key-term-name { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 3px; }
+  #key-term-def { font-size: 12px; color: var(--text2); line-height: 1.6; }
+  #ask-claude-btn { display: flex; align-items: center; gap: 8px; padding: 7px 14px; border: 0.5px solid var(--border2); border-radius: var(--radius); background: transparent; cursor: pointer; font-size: 12px; color: var(--text2); margin-bottom: 18px; }
+  #ask-claude-btn:hover { background: var(--bg2); }
+  #claude-box { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 14px; margin-bottom: 18px; }
+  #claude-label { font-size: 10px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+  #claude-text { font-size: 13px; color: var(--text); line-height: 1.75; white-space: pre-wrap; }
+  #lesson-nav { display: flex; justify-content: space-between; }
+  .nav-arrow { padding: 7px 14px; border: 0.5px solid var(--border2); border-radius: var(--radius); background: transparent; cursor: pointer; font-size: 12px; color: var(--text2); }
+  .nav-arrow:disabled { color: var(--text3); cursor: not-allowed; }
+  .nav-arrow:not(:disabled):hover { background: var(--bg2); }
+  #quiz-btn { padding: 7px 18px; border: none; border-radius: var(--radius); background: var(--green); color: #fff; cursor: pointer; font-size: 12px; font-weight: 600; }
+  #quiz-btn:hover { background: var(--green-dark); }
+
+  /* QUIZ */
+  #q-dots { display: flex; gap: 5px; margin-bottom: 18px; align-items: center; }
+  .q-dot { height: 7px; border-radius: 4px; cursor: pointer; transition: all 0.2s; flex-shrink: 0; background: var(--bg3); width: 7px; }
+  .q-dot.active { width: 26px; background: var(--border2); }
+  .q-dot.correct { background: var(--green); }
+  .q-dot.wrong { background: var(--red); }
+  #q-counter { font-size: 11px; color: var(--text3); margin-left: 4px; }
+  #q-text { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 16px; line-height: 1.55; }
+  #q-options { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+  .q-opt { padding: 10px 14px; border: 0.5px solid var(--border2); border-radius: var(--radius); background: var(--bg); cursor: pointer; font-size: 13px; color: var(--text); text-align: left; line-height: 1.5; transition: all 0.15s; }
+  .q-opt:not(.answered):hover { background: var(--bg2); }
+  .q-opt.correct { background: var(--success-bg); border-color: var(--success-border); color: var(--success-text); cursor: default; }
+  .q-opt.wrong { background: var(--danger-bg); border-color: var(--danger-border); color: var(--danger-text); cursor: default; }
+  .q-opt.answered { cursor: default; }
+  #q-feedback { padding: 10px 14px; border-radius: var(--radius); margin-bottom: 16px; display: none; }
+  #q-feedback.correct { background: var(--success-bg); display: block; }
+  #q-feedback.wrong { background: var(--danger-bg); display: block; }
+  #q-feedback-title { font-size: 13px; font-weight: 600; margin-bottom: 3px; }
+  #q-feedback.correct #q-feedback-title { color: var(--success-text); }
+  #q-feedback.wrong #q-feedback-title { color: var(--danger-text); }
+  #q-feedback-exp { font-size: 12px; color: var(--text2); line-height: 1.6; }
+  #quiz-nav { display: flex; justify-content: space-between; align-items: center; }
+  #back-to-lesson { padding: 7px 14px; border: 0.5px solid var(--border2); border-radius: var(--radius); background: transparent; cursor: pointer; font-size: 12px; color: var(--text2); }
+  #back-to-lesson:hover { background: var(--bg2); }
+  #quiz-actions { display: flex; gap: 8px; }
+  .quiz-action-btn { padding: 7px 16px; border: none; border-radius: var(--radius); cursor: pointer; font-size: 12px; font-weight: 600; color: #fff; }
+  #next-q-btn { background: var(--green); display: none; }
+  #next-q-btn:hover { background: var(--green-dark); }
+  #next-ch-btn { background: var(--green-dark); display: none; }
+  #next-ch-btn:hover { opacity: 0.9; }
+  #complete-msg { font-size: 13px; color: var(--green); font-weight: 600; padding: 7px 0; display: none; }
+
+  /* GLOSSARY MODAL */
+  #overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: none; align-items: center; justify-content: center; z-index: 100; }
+  #overlay.open { display: flex; }
+  #glossary-modal { background: var(--bg); border-radius: var(--radius-lg); border: 0.5px solid var(--border); width: 560px; max-height: 82vh; overflow: hidden; display: flex; flex-direction: column; }
+  #glossary-header { padding: 14px 18px; border-bottom: 0.5px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+  #glossary-header span { font-size: 15px; font-weight: 600; color: var(--text); }
+  #close-glossary { border: none; background: transparent; cursor: pointer; font-size: 20px; color: var(--text3); line-height: 1; }
+  #glossary-list { overflow-y: auto; padding: 8px 18px 16px; }
+  .gloss-item { padding: 10px 0; border-bottom: 0.5px solid var(--border); }
+  .gloss-term { font-size: 12px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+  .gloss-def { font-size: 12px; color: var(--text2); line-height: 1.6; }
+
+  /* MOBILE */
+  @media (max-width: 680px) {
+    #sidebar { display: none; }
+    #main { padding: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="sidebar">
+  <div id="sidebar-header">
+    <div id="sidebar-title">Vibecoding for Granola</div>
+    <div id="sidebar-progress-label">0/20 complete · 0%</div>
+    <div id="progress-bar"><div id="progress-fill"></div></div>
+  </div>
+  <div id="nav"></div>
+  <button id="glossary-btn" onclick="openGlossary()">Glossary (all 20 key terms)</button>
+</div>
+
+<div id="main">
+  <div id="content">
+    <div id="chapter-label"></div>
+    <div id="chapter-title"></div>
+    <div id="chapter-subtitle"></div>
+    <div id="tabs">
+      <button class="tab-btn active" onclick="setView('lesson')">Lesson</button>
+      <button class="tab-btn" id="quiz-tab-btn" onclick="setView('quiz')">Quiz</button>
+    </div>
+
+    <!-- LESSON VIEW -->
+    <div id="lesson-view">
+      <div id="granola-callout">
+        <div id="granola-callout-label">Granola in the real world</div>
+        <div id="granola-text"></div>
+      </div>
+      <div id="lesson-content"></div>
+      <div id="tables-container"></div>
+      <div id="rec-box" style="display:none">
+        <div id="rec-label">Handbook recommendation</div>
+        <div id="rec-text"></div>
+      </div>
+      <div id="key-term-box">
+        <div id="key-term-label">Key term</div>
+        <div id="key-term-name"></div>
+        <div id="key-term-def"></div>
+      </div>
+      <button id="ask-claude-btn" onclick="askClaude()">Ask Claude for a deeper explanation ↗</button>
+      <div id="claude-box" style="display:none">
+        <div id="claude-label">Claude's explanation</div>
+        <div id="claude-text">Thinking...</div>
+      </div>
+      <div id="lesson-nav">
+        <button class="nav-arrow" id="prev-btn" onclick="prevChapter()">← Previous</button>
+        <button id="quiz-btn" onclick="setView('quiz')">Take quiz →</button>
+      </div>
+    </div>
+
+    <!-- QUIZ VIEW -->
+    <div id="quiz-view" style="display:none">
+      <div id="q-dots"></div>
+      <div id="q-text"></div>
+      <div id="q-options"></div>
+      <div id="q-feedback">
+        <div id="q-feedback-title"></div>
+        <div id="q-feedback-exp"></div>
+      </div>
+      <div id="quiz-nav">
+        <button id="back-to-lesson" onclick="setView('lesson')">← Back to lesson</button>
+        <div id="quiz-actions">
+          <button class="quiz-action-btn" id="next-q-btn" onclick="nextQuestion()">Next question →</button>
+          <button class="quiz-action-btn" id="next-ch-btn" onclick="nextChapter()">Next chapter →</button>
+          <div id="complete-msg">Course complete! 🎉</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- GLOSSARY MODAL -->
+<div id="overlay" onclick="closeGlossary()">
+  <div id="glossary-modal" onclick="event.stopPropagation()">
+    <div id="glossary-header">
+      <span>Handbook Glossary</span>
+      <button id="close-glossary" onclick="closeGlossary()">✕</button>
+    </div>
+    <div id="glossary-list"></div>
+  </div>
+</div>
+
+<script>
+const G="#1D9E75",GD="#0F6E56";
+
+const MODULES=[
+  {id:"I",title:"Before we begin",subtitle:"Who this book is for and how to read it",
+   granola:"You use Granola daily — but what actually powers it? This course maps the entire JS ecosystem to Granola's real architecture, chapter by chapter, directly from the Vibe Coder's Handbook.",
+   content:"The web dev ecosystem in 2026 is genuinely confusing — even for experienced developers. Over 2.5 million packages exist on npm. Tutorials from two years ago are already outdated.\n\nThis book fixes that. It won't teach you to code. It teaches you what every major tool does, which ones are interchangeable (either/or choices), and which ones work together.\n\nThe four audiences:\n• Vibe coders — building with AI, want to understand what it generated\n• Returning developers — left coding, came back to an unrecognizable ecosystem\n• Managers and founders — want to speak their dev team's language\n• Students and curious minds — want the map before the tutorials\n\nThink of this book as the map. The learning resources at the end of each chapter are the driving lessons.",
+   keyTerm:"Vibe coding",keyTermDef:"Building software by describing it to AI in natural language. The AI generates real, custom, editable, deployable source code — not templates or drag-and-drop.",
+   rec:null,tables:[],
+   quizzes:[
+    {q:"What does this handbook teach — and what does it explicitly NOT teach?",opts:["It teaches you to write code from scratch","It teaches what every major tool does and how tools relate — not how to code","It teaches you to use specific AI tools like Cursor and Bolt","It teaches database design and SQL"],a:1,exp:"'We will not teach you how to code… Instead, we will teach you what every major tool in the ecosystem does, which ones are interchangeable, and which ones work together.'"},
+    {q:"What is the difference between an 'either/or' tool choice and tools that 'work together'?",opts:["Either/or tools are free; working-together tools require payment","Either/or tools do the same job — you pick one. Tools that work together do different jobs and are used simultaneously","Either/or tools are for beginners; working-together tools are for advanced developers","There is no meaningful difference — all tools can be combined"],a:1,exp:"The core framework of the book: 'which ones are interchangeable (either/or choices), and which ones work together.' React OR Vue (same job). But React AND Tailwind AND Zod work together (different jobs)."},
+    {q:"The handbook uses a map analogy. What does the 'map' represent, and what are the 'driving lessons'?",opts:["The map is the code; the driving lessons are the tutorials","The map is this book (understanding what tools exist); the driving lessons are the tutorials (hands-on coding)","The map is the Master Map table; the driving lessons are the quiz questions","The map is GitHub; the driving lessons are deployment platforms"],a:1,exp:"'Think of this book as the map, and those tutorials as the driving lessons.' The book gives you orientation; tutorials give you hands-on practice."},
+   ]},
+  {id:1,title:"How the web actually works",subtitle:"Frontend, backend, databases, and the three languages",
+   granola:"Granola has all three layers: a desktop/web frontend you interact with, a backend server handling auth and syncing, and a database storing your notes. Every 'Chat with meeting' click involves all three layers working together.",
+   content:"Every web app ever built — from Google to a personal blog — has exactly three layers. No exceptions.\n\nThe Restaurant Analogy: The frontend is the dining room (what customers see and touch). The backend is the kitchen (where orders are processed). The database is the pantry and recipe book (all ingredients and knowledge stored permanently).\n\nCritical insight: Every tool in this book eventually produces HTML, CSS, and JavaScript. React produces HTML and JS. Tailwind produces CSS. TypeScript compiles to JS. The browser never sees React or Tailwind.\n\nCLIENT VS SERVER\n• Client (Frontend): The user's device and browser. Anyone can view it using dev tools. Never trust it for security.\n• Server (Backend): A computer in a data center. Code here is hidden from users. Handles sensitive operations: checking passwords, charging credit cards, accessing databases.",
+   keyTerm:"HTTP request-response cycle",keyTermDef:"The browser asks (request) and the server responds (response). Every click, every page load — this cycle happens underneath. It is the heartbeat of every web application.",
+   rec:"When you feel lost with any tool, ask: is this a dining room thing (frontend), a kitchen thing (backend), or a pantry thing (database)?",
+   tables:[
+    {title:"The three layers of every web app",headers:["Layer","What It Does","Where It Runs"],rows:[["Frontend","Everything the user sees and interacts with: buttons, forms, pages, images, animations","In the user's browser"],["Backend","Hidden logic: processes requests, handles security, authenticates users, talks to the database","On a server (a computer in a data center)"],["Database","Stores all persistent data: user accounts, posts, orders, settings, files, logs","On a server (often a managed service)"]]},
+    {title:"The three languages of the web",headers:["Language","Job","Real-World Analogy"],rows:[["HTML","Defines structure and content: headings, paragraphs, buttons, forms, images","The blueprint of a building: where walls, doors, windows go"],["CSS","Defines how everything looks: colors, fonts, spacing, layout, shadows, animations","Interior design: paint colors, furniture, lighting"],["JavaScript","Defines how things behave: what happens on click, how data moves, how the page updates","Electrical and plumbing: what makes things actually work"]]}
+   ],
+   quizzes:[
+    {q:"Which layer handles sensitive operations like checking passwords — and why?",opts:["Frontend — it's closest to the user","Backend — code there is hidden from users and can't be inspected via dev tools","Database — it stores the password data","Any layer — security doesn't depend on location"],a:1,exp:"'Server (Backend): Code that runs here is hidden from users. It handles sensitive operations: checking passwords, charging credit cards, accessing databases.' Frontend code can be viewed by anyone in browser dev tools."},
+    {q:"In the restaurant analogy, what does the DATABASE represent?",opts:["The dining room — it's what customers interact with","The kitchen — it processes all the orders","The pantry and recipe book — it stores all ingredients and knowledge permanently","The waiter — it connects the customer to the kitchen"],a:2,exp:"'The database is the pantry and recipe book: where all the ingredients and knowledge are stored permanently.' When the backend (kitchen) needs to look something up, it goes to the database (pantry)."},
+    {q:"When your AI generates a React project with Tailwind, does the browser ever see React or Tailwind code?",opts:["Yes — modern browsers understand React natively","Yes — Tailwind is just regular CSS that browsers understand","No — these tools compile down to HTML, CSS, and JavaScript before the browser sees anything","Only if you enable a special browser extension"],a:2,exp:"'The browser never sees React or Tailwind. It only sees the HTML, CSS, and JavaScript they generate.' These tools are development abstractions that produce the three browser languages as output."},
+    {q:"What are the three languages every browser understands — and what is each one's job?",opts:["HTML (structure), Python (logic), CSS (appearance)","JavaScript (structure), TypeScript (safety), CSS (appearance)","HTML (structure), CSS (appearance), JavaScript (behaviour)","React (UI), Node.js (server), SQL (data)"],a:2,exp:"HTML defines structure, CSS defines appearance, JavaScript defines behaviour. These are the only three languages browsers natively understand."},
+    {q:"Granola needs to check a user's subscription before showing content. Which layer handles this?",opts:["Frontend — it's displayed in the UI","Backend — subscription checks are business logic enforced server-side","Database — it can query itself directly","All three simultaneously"],a:1,exp:"Subscription checking is business logic and a security decision — it must run on the backend. 'Never trust client-side code for security.' A user could bypass a frontend-only check using browser dev tools."},
+   ]},
+  {id:2,title:"JavaScript and TypeScript",subtitle:"The language, the upgrade, and why TypeScript won",
+   granola:"Granola's entire codebase is TypeScript. It's the default for any serious project — what Granola engineers use for the desktop app, the backend, and every tool in between.",
+   content:"JavaScript is the only programming language that browsers understand natively. No other language has this privilege.\n\nTypeScript is JavaScript with a safety net. It adds one transformative feature: static types.\n\nThe Problem: In JavaScript, you might write let price = 29.99, then accidentally assign price = \"free\" somewhere else. JavaScript won't complain. Three files later, price * 1.1 returns NaN instead of tax. Finding where price became a string can take hours.\n\nTypeScript prevents this. The compiler shows a red squiggly line immediately when types mismatch.\n\nImportant: TypeScript does NOT run in browsers or on servers. It compiles to regular JavaScript before deployment. Types are completely stripped away — they exist only during development.\n\nThe Either/Or Decision: Use TypeScript for any project you plan to maintain. Use JavaScript only for throwaway scripts or learning exercises.",
+   keyTerm:"Static typing",keyTermDef:"Declaring what type of data a variable holds (number, string, object) so the compiler catches mismatches before the code ever runs. TypeScript's core feature — bugs found in your editor, not in production by real users.",
+   rec:"Use TypeScript for any project you plan to maintain. Use JavaScript only for throwaway scripts, quick experiments, or learning exercises.",
+   tables:[{title:"JavaScript vs TypeScript",headers:["Factor","JavaScript","TypeScript"],rows:[["Bug prevention","Bugs found at runtime (in production, by users)","Bugs caught at compile time (in your editor, before deployment)"],["Editor support","Basic autocomplete","Rich autocomplete, inline docs, safe refactoring, jump-to-definition"],["Team collaboration","Hard to know data shape without reading all the code","Types serve as living documentation that can never go out of date"],["AI coding tools","AI has less context, generates less accurate code","Types give AI much better understanding, leading to fewer errors"],["Codebase size","Fine for small projects","Essential for large codebases; helpful at any size"]]}],
+   quizzes:[
+    {q:"TypeScript catches bugs at compile time. What does this mean practically?",opts:["Bugs are caught when the app is deployed to production","Bugs are caught in your editor before you ever run the code","Bugs are caught when users report them","Bugs are caught only during automated tests"],a:1,exp:"'Bugs caught at compile time (in your editor, before deployment)' — TypeScript shows a red squiggly line immediately when types mismatch. Contrast with JavaScript where 'Bugs found at runtime (in production, by users).'"},
+    {q:"Does TypeScript run in the browser? What happens to types when code is deployed?",opts:["Yes — modern browsers support TypeScript natively","No — TypeScript compiles to JavaScript; types are completely stripped away before deployment","Yes — but only in Chrome and Firefox","No — TypeScript runs only on the server via Node.js"],a:1,exp:"'TypeScript gets compiled into regular JavaScript before deployment. The types are completely stripped away. They exist only during development. The browser never sees a single TypeScript type declaration.'"},
+    {q:"According to the comparison table, how does TypeScript help AI coding tools?",opts:["AI tools were built by the TypeScript team","Types give AI much better understanding of your codebase, leading to fewer errors","AI tools run TypeScript natively and can't use JavaScript","TypeScript automatically fixes AI-generated bugs"],a:1,exp:"From the table: 'AI coding tools — TypeScript: Types give AI much better understanding, leading to fewer errors.' vs 'JavaScript: AI has less context to generate accurate code.' Directly relevant to vibecoding."},
+    {q:"When should you use JavaScript instead of TypeScript?",opts:["When you want faster runtime performance","For throwaway scripts, quick experiments, or learning exercises — not for projects you plan to maintain","When your team is more comfortable with it","When deploying to Vercel — it only supports JavaScript"],a:1,exp:"'Use TypeScript for any project you plan to maintain. Use JavaScript only for throwaway scripts, quick experiments, or learning exercises.' TypeScript has no runtime performance difference — types are stripped before the code runs."},
+    {q:"You're building a long-term Granola integration tool. Which language and why?",opts:["JavaScript — simpler and faster to write","TypeScript — types serve as living documentation, catches bugs before deployment, gives AI better context","Either — the choice doesn't matter","Python — easier for non-developers to read"],a:1,exp:"For a maintained project: TypeScript. The table shows: 'Team collaboration: Types serve as living documentation that can never go out of date.' Plus bugs caught before deployment rather than in production."},
+   ]},
+  {id:3,title:"Node.js and the runtime",subtitle:"Running JavaScript outside the browser, npm, packages",
+   granola:"Granola's backend runs on Node.js. When you hit 'Chat with this meeting' and Granola queries your notes, calls an AI model, and returns results — that's Node.js executing server-side JavaScript.",
+   content:"Node.js lets you run JavaScript outside of a browser — on servers, laptops, anywhere.\n\nBefore Node.js, JavaScript was trapped inside the browser. Backend work required PHP, Java, Python, Ruby. Node.js enabled 'JavaScript everywhere' — one language for both frontend AND backend.\n\nNode.js is not a framework, not a library, not a language. It is a RUNTIME: an environment where JavaScript code executes. Everything else (React, Express, Next.js, Drizzle) runs on top of this engine.\n\nnpm (Node Package Manager): Think of npm as an app store for code. Over 2.5 million packages available. 'npm install react' downloads React and its dependencies into a folder called node_modules.\n\npackage.json: Every project has one — the project's ID card:\n• 'dependencies' — packages the app needs in production\n• 'devDependencies' — packages needed only during development (like TypeScript itself — types are stripped at build time, so TypeScript isn't needed in production)",
+   keyTerm:"Runtime",keyTermDef:"An environment where code executes. Node.js is the runtime that lets JavaScript run outside browsers, on servers. Everything else in the ecosystem (React, Express, Next.js, Drizzle) runs on top of Node.js.",
+   rec:"If starting out, use npm — it comes free with Node.js and every tutorial uses it. Consider pnpm or Bun only when you have a specific reason, like saving disk space across many projects.",
+   tables:[{title:"Package manager comparison",headers:["Manager","Speed","Disk Usage","Key Feature","Best For"],rows:[["npm","Standard","Standard","Comes with Node.js, universal compatibility","Beginners, max compatibility"],["pnpm","2x faster","70% less","Content-addressable store (each package stored once across all projects)","Professional devs, monorepos"],["Yarn Berry","Fast","No node_modules (PnP mode)","Plug'n'Play — eliminates node_modules entirely","Teams wanting zero-install workflows"],["Bun","3–5x faster","Standard","All-in-one: runtime + bundler + package manager","Speed-obsessed developers"]]}],
+   quizzes:[
+    {q:"What exactly is Node.js — is it a framework, a library, or a language?",opts:["A framework — it structures how you build backends","A library — it adds features to JavaScript","A language — it is a different version of JavaScript","A runtime — an environment where JavaScript executes outside the browser"],a:3,exp:"'Node.js is not a framework, not a library, and not a language. It is a runtime: an environment where JavaScript code executes.' Everything else (React, Express, Next.js) is built to run on top of it."},
+    {q:"What is the difference between 'dependencies' and 'devDependencies' in package.json?",opts:["They are the same — the distinction is cosmetic","dependencies are needed in production; devDependencies are needed only during development and excluded from production builds","dependencies are optional; devDependencies are required","dependencies are for the frontend; devDependencies are for the backend"],a:1,exp:"'dependencies: packages the app needs to run in production' vs 'devDependencies: packages needed only during development, like TypeScript itself.' TypeScript is a devDependency because types are stripped before production."},
+    {q:"pnpm uses 70% less disk space than npm. What specific feature makes this possible?",opts:["It compresses packages with gzip automatically","It only installs packages when they're first used","Content-addressable store — each package stored once and shared across all projects on your computer","It skips downloading documentation and type definitions"],a:2,exp:"pnpm's key feature is 'Content-addressable store (each package stored once)' — if 10 projects all use React, npm downloads React 10 times; pnpm stores it once and links to it."},
+    {q:"Bun is described as 'all-in-one.' What three things does it combine?",opts:["Editor + debugger + package manager","Runtime + bundler + package manager","Database + server + package manager","Linter + formatter + package manager"],a:1,exp:"Bun's key feature is 'All-in-one runtime + bundler + package manager.' It replaces Node.js (runtime), Vite (bundler), AND npm (package manager) in a single tool."},
+    {q:"When you run 'npm install' in a shared project, what happens and why?",opts:["It creates a new project from scratch","It reads package.json and downloads all listed dependencies into node_modules — because node_modules is excluded from Git","It uploads your code to npm's servers","It checks for security vulnerabilities"],a:1,exp:"'When someone shares a project with you, they do not include the node_modules folder (it is too large and is listed in .gitignore). Instead, you run \"npm install\" and npm reads the package.json to download everything fresh.'"},
+   ]},
+  {id:4,title:"Frontend frameworks",subtitle:"React, Vue, Angular, Svelte: what they do and how to choose",
+   granola:"Granola's desktop interface is built in React. Every element — the notepad, sidebar, Spaces panel, live transcript — is a React component. React's automatic UI updates make real-time transcription feel seamless.",
+   content:"A frontend framework solves one hard problem: keeping your UI in sync with your data automatically. Without one, you'd manually find DOM elements and update them — fine for simple pages, a nightmare for complex apps.\n\nREACT (Meta/Facebook)\nMost popular frontend framework by every metric. Introduced JSX: HTML-like syntax inside JavaScript files.\n• Intentionally minimal — handles only the UI layer (components, state, rendering)\n• For everything else (routing, global state, forms): you choose additional libraries\n• Best for: Large apps, teams needing the largest ecosystem\n\nVUE (Evan You, ex-Google engineer)\n• Uses HTML templates (not JSX) — feels more familiar to beginners\n• Built-in solutions: Pinia for state, Vue Router for routing\n• Best for: Small to medium projects, gentle learning curve\n\nANGULAR (Google)\n• Most opinionated — TypeScript is REQUIRED (not optional)\n• Includes routing, forms, HTTP out of the box\n• Best for: Large enterprise apps with big teams\n\nSVELTE (Rich Harris)\n• A compiler — transforms components into optimized plain JS at BUILD TIME\n• Zero framework runtime shipped to the browser\n• Best for: Performance-critical apps\n\nThese are EITHER/OR — you pick ONE per project.",
+   keyTerm:"Component",keyTermDef:"A self-contained piece of UI that manages its own appearance and data. The fundamental building block of modern frontends. You compose components like LEGO blocks to build entire applications.",
+   rec:"Pick ONE frontend framework per project — they are either/or. In 2026, React is the safe default because of its enormous ecosystem, job market, and community.",
+   tables:[{title:"Frontend framework comparison",headers:["Framework","TypeScript","Routing/State included?","Best For"],rows:[["React","Optional (strongly recommended)","No — you choose additional libraries","Large apps, biggest ecosystem"],["Vue","Optional","Yes (Pinia + Vue Router built-in)","Small-medium projects, gentle learning curve"],["Angular","Required (not optional)","Yes (all-in-one)","Enterprise apps, large teams, strict conventions"],["Svelte","Optional","No (SvelteKit adds this)","Performance-critical apps, minimal syntax"]]}],
+   quizzes:[
+    {q:"React is 'intentionally minimal.' What does this mean — and what is the consequence?",opts:["React ships with everything including routing, state management, and form handling","React handles only the UI layer; for routing, global state, and forms you must choose additional libraries yourself","React is minimal in file size but comprehensive in features","React only works for simple apps"],a:1,exp:"'React is intentionally minimal. It handles only the UI layer: components, state, and rendering. For everything else (routing, fetching data, managing global state, form handling), you choose additional libraries.' This is both its greatest strength and biggest source of confusion."},
+    {q:"What makes Svelte fundamentally different from React, Vue, and Angular?",opts:["Svelte uses a different programming language","Svelte is a compiler — transforms components to optimized plain JS at build time with zero runtime overhead in the browser","Svelte requires TypeScript; the others don't","Svelte only works for mobile apps"],a:1,exp:"'Svelte is a compiler: it transforms your components into highly optimized, plain JavaScript at build time. The browser receives lean, fast code with zero framework overhead.' React, Vue, and Angular all ship framework runtime code to the browser; Svelte does not."},
+    {q:"Angular requires TypeScript — not optional. Why does this matter?",opts:["It doesn't matter — TypeScript is always optional regardless","Angular enforces consistency across large teams by requiring TypeScript; the others give flexibility but less enforcement","TypeScript required means Angular is harder to learn","Optional TypeScript means React, Vue, and Svelte don't support TypeScript well"],a:1,exp:"Angular 'requires TypeScript (not optional)' as part of being 'the most opinionated and comprehensive framework' suited for 'Large enterprise apps with big teams needing strict conventions.'"},
+    {q:"Vue has 'built-in solutions' for routing and state. What tools are included?",opts:["Redux for state, React Router for routing","Pinia for state, Vue Router for routing","Zustand for state, Next.js for routing","Jotai for state, SvelteKit for routing"],a:1,exp:"Vue 'provides built-in solutions: Pinia for state management and Vue Router for routing.' Unlike React, which makes you choose your own tools for these jobs."},
+    {q:"Can you use React AND Vue in the same project?",opts:["Yes — combine them for the best features of each","No — frontend frameworks are either/or choices; you pick one per project","Yes — but only for specific components","Only if you use a meta-framework like Next.js"],a:1,exp:"'You pick ONE frontend framework per project. You do not combine React and Vue. They solve the same problem differently.' They are either/or choices."},
+   ]},
+  {id:5,title:"Styling your app",subtitle:"Tailwind CSS, CSS Modules, and the styling decision",
+   granola:"Granola's clean, minimal interface — off-white backgrounds, subtle borders, compact notepad layout — reflects deliberate styling choices. Tailwind dominates new projects exactly like Granola's in 2026.",
+   content:"Raw CSS for large apps has real problems: naming collisions (two developers creating a .button class with different styles), no reusable variables (same hex color repeated 47 times), difficulty organizing thousands of lines.\n\nTAILWIND CSS (Dominant in 2026, ~55% of new projects)\nUtility-first: apply tiny single-purpose classes directly in your HTML or JSX. Each class does exactly one thing.\n\nbg-blue-500 → sets a blue background\ntext-white → makes text white\np-4 → adds padding\nrounded → rounds corners\n\nWhy developers convert after a week:\n• Speed: Never leave your component file. No switching between HTML and CSS. No inventing class names.\n• Consistency: Built-in design system. Professional look without a designer.\n• Optimization: Tailwind strips every unused class. Production CSS often under 10 KB.\n• AI-friendly: Every class name explicitly states its intent — 'bg-blue-500' is unambiguous.\n\nOTHER APPROACHES:\n• CSS Modules: Scope regular CSS to individual components, solving naming collisions. Built into Next.js.\n• styled-components: Write CSS inside JavaScript. Declining in 2026.\n• Plain CSS / SCSS: Traditional approach.",
+   keyTerm:"Utility-first CSS",keyTermDef:"Tailwind's approach: apply tiny, single-purpose classes directly in your HTML/JSX instead of writing CSS rules in separate files. Each class does one thing (bg-blue-500, p-4, text-white). Compose them to build any design.",
+   rec:"Tailwind CSS is the 2026 default. AI coding tools generate Tailwind natively and accurately. Use it unless you have a specific reason not to.",
+   tables:[{title:"Styling approaches comparison",headers:["Approach","Where CSS Lives","AI Friendliness","2026 Popularity"],rows:[["Tailwind CSS","In your HTML/JSX as utility classes","Excellent","Dominant (~55% of new projects)"],["CSS Modules","In .module.css files, one per component","Good","Medium (~20%)"],["styled-components","Inside JavaScript files","Moderate","Declining (~10%)"],["Plain CSS / SCSS","In .css or .scss files","Good","Medium (~15%)"]]}],
+   quizzes:[
+    {q:"What specific problem does Tailwind's utility-first approach solve compared to CSS in separate files?",opts:["Tailwind loads faster than CSS files","You never need to leave your component file, invent class names, or switch between HTML and CSS — everything is co-located","Tailwind automatically generates animations","Tailwind replaces the need for a designer"],a:1,exp:"'Speed: You never leave your component file. No switching between HTML and CSS files. No inventing class names.' This co-location of structure and style is Tailwind's primary productivity advantage."},
+    {q:"Why is Tailwind described as especially 'AI-friendly'?",opts:["AI tools were built by the Tailwind team","Every class name explicitly states its intent — 'bg-blue-500' is unambiguous, so AI generates accurate code","Tailwind has a built-in AI that suggests class names","AI tools can read Tailwind documentation in real time"],a:1,exp:"'AI coding tools love Tailwind because every class name explicitly states its intent. \"bg-blue-500\" is unambiguous. AI generates Tailwind code with high accuracy.' Directly relevant to vibecoding."},
+    {q:"What is the naming collision problem that CSS Modules solves?",opts:["CSS Modules prevent two stylesheets loading at the same time","Two developers accidentally creating a .button class with different styles — CSS Modules scope styles to individual components","CSS Modules prevent CSS from blocking page rendering","CSS Modules solve the problem of CSS files getting too large"],a:1,exp:"CSS Modules solve 'naming collisions (two developers accidentally creating a .button class with different styles)' by scoping 'regular CSS to individual components.'"},
+    {q:"Tailwind strips unused classes in production. Why does this matter?",opts:["It speeds up the development server","Production CSS is often under 10 KB — only the classes you actually used are included","It prevents hackers from seeing your CSS","It makes Tailwind compatible with all browsers"],a:1,exp:"'Optimization: Tailwind scans your code and strips out every class you did not use. Your production CSS file contains only what you actually need, often under 10 KB.'"},
+    {q:"Which styling approach is built directly into Next.js?",opts:["Tailwind CSS","styled-components","CSS Modules","SCSS"],a:2,exp:"'CSS Modules scope regular CSS to individual components, solving naming collisions while letting you write standard CSS syntax. They come built into Next.js.' No extra configuration needed."},
+   ]},
+  {id:6,title:"Meta-frameworks",subtitle:"Next.js, Nuxt, SvelteKit: the full-stack layer explained",
+   granola:"Granola's web app almost certainly uses Next.js — the default full-stack wrapper for React apps built by Vercel. Next.js handles routing, SSR, and API endpoints all in one project.",
+   content:"CRITICAL: A meta-framework is NOT a replacement for a frontend framework. It is built ON TOP OF one. Next.js uses React inside it. You are still writing React code. The meta-framework adds server-side capabilities around it.\n\nWHY META-FRAMEWORKS EXIST\nPlain React + Vite gives you an SPA (Single Page Application). Real problems:\n• Slow initial load: Users see a blank white page while JavaScript downloads\n• Poor SEO: Search engines see an empty page initially\n• No server capabilities: Need a separate backend project for database, payments, email\n• Manual routing: Must install and configure a routing library\n\nNEXT.JS (React meta-framework, created by Vercel)\nMost popular meta-framework in 2026. Adds:\n• Server-Side Rendering (SSR): server pre-builds HTML before sending to browser\n• File-based routing: create app/pricing/page.tsx → you have a /pricing page automatically\n• API routes: backend endpoints inside the same project\n• Server Components: some components run ONLY on the server\n\nThe Car Analogy: React alone is a car engine. Next.js is the fully assembled car. The engine is still React.",
+   keyTerm:"Server-Side Rendering (SSR)",keyTermDef:"The server generates complete HTML before sending it to the browser. Pages load instantly with real content — good for SEO and performance. Next.js makes SSR the default. Contrast with SPA: loads blank, fills in afterward.",
+   rec:"Use Next.js. It's the 2026 default meta-framework for React. The car analogy says it all — it's the fully assembled car, not just the engine.",
+   tables:[{title:"Meta-framework map",headers:["Frontend Framework","Meta-Framework","Alternative (no meta-framework)"],rows:[["React","Next.js (dominant) or Remix","Plain React + Vite"],["Vue","Nuxt","Plain Vue + Vite"],["Svelte","SvelteKit","Plain Svelte + Vite"],["Any / Multiple","Astro","Any of the above"]]}],
+   quizzes:[
+    {q:"A meta-framework like Next.js is built ON TOP of React. Does this mean you stop writing React code?",opts:["Yes — Next.js replaces React with its own component system","No — you still write React code. Next.js adds server capabilities, routing, and deployment tools around React","Only for server-side components — client components still use React","Yes — Next.js has its own language"],a:1,exp:"'A meta-framework is NOT a replacement for a frontend framework. It is built ON TOP OF one. Next.js uses React inside it. You are still writing React code.'"},
+    {q:"What are the two main problems with plain React (SPA) that meta-frameworks solve?",opts:["SPA is too expensive to host and hard to style","Slow initial load (blank page while JS downloads) and poor SEO (search engines see empty page)","SPA requires TypeScript and doesn't support CSS Modules","SPA can't use components and doesn't support animations"],a:1,exp:"'Slow initial load: Users see a blank white page while the browser downloads and executes all the JavaScript' and 'Poor SEO: Search engines see an empty page initially.' SSR from Next.js solves both by pre-building HTML on the server."},
+    {q:"What does 'file-based routing' mean in Next.js?",opts:["Your CSS files determine the visual route through your app","Creating app/pricing/page.tsx automatically creates the /pricing route — no separate router configuration needed","Route files are uploaded to a CDN","Files are sorted alphabetically to determine navigation order"],a:1,exp:"'File-based routing: create a file at app/pricing/page.tsx and you automatically have a /pricing page.' Without this, you'd need to install and configure a routing library manually."},
+    {q:"Next.js includes API routes. What does this mean for whether you need a separate Express server?",opts:["You always still need a separate Express server","For small to medium projects, Next.js API routes can handle backend logic — eliminating the need for a separate server","API routes are only for authentication","API routes replace Express but require a different language"],a:1,exp:"'API routes: build backend endpoints inside the same project, potentially eliminating the need for a separate Express server.' You only need a standalone backend when server logic is complex, multiple frontends share it, or you need WebSockets."},
+    {q:"Astro is unique compared to Next.js, Nuxt, and SvelteKit. What makes it different?",opts:["Astro is the fastest Next.js alternative for React apps","Astro is framework-agnostic (use React, Vue, Svelte, or plain HTML in same project) and ships zero JavaScript to the browser by default","Astro is the official Google meta-framework","Astro replaces the need for a database"],a:1,exp:"'Astro is unique: framework-agnostic (you can use React, Vue, Svelte, or plain HTML in the same project) and ships zero JavaScript to the browser by default, making it excellent for content-heavy sites like blogs and documentation.'"},
+   ]},
+  {id:7,title:"The backend",subtitle:"Express, Fastify, NestJS, Hono, and API routes",
+   granola:"When you use 'Chat with meeting' in Granola, a request hits Granola's backend. It validates your auth token, queries the database, calls an AI model (Claude, GPT, or Gemini), and returns the result. Express or similar handles this pipeline.",
+   content:"The backend handles everything users should never see: processing payments, authenticating users, enforcing business rules, sending emails, connecting to databases.\n\nEXPRESS\nThe oldest and most widely used Node.js backend framework.\n• Minimal and unopinionated — doesn't dictate structure or database choice\n• Middleware system: functions that execute in sequence for every request\n  Example: logging → CORS check → auth check → route handler\n\nFASTIFY\n• Up to 2x faster than Express\n• Built-in JSON schema validation — automatically rejects mismatched requests\n• Excellent TypeScript support out of the box\n\nNESTJS\nThe 'Angular of backends' — heavily opinionated, TypeScript-first.\n• Enforces controllers (handle requests), services (business logic), modules (organize code)\n• Runs Express or Fastify under the hood\n• Best for: enterprise backends needing consistent patterns\n\nHONO\nUltralight (~14 KB). Designed for edge runtimes (Cloudflare Workers, Deno Deploy, Bun).\n\nKEY INSIGHT: If you use Next.js, its built-in API Routes can replace a separate Express server for small-to-medium projects.",
+   keyTerm:"Middleware",keyTermDef:"A function that executes between receiving a request and sending a response — like a pipeline. Example: logging → CORS check → auth check → route handler. Express's middleware system is its most powerful feature.",
+   rec:"Use Express for most projects — largest ecosystem, most tutorials. For Next.js projects, use built-in API routes and skip a separate backend entirely for small-medium apps.",
+   tables:[{title:"Backend framework comparison",headers:["Framework","Speed","TypeScript","Learning Curve","Best For"],rows:[["Express","Good","Optional","Easy","Most projects, learning, prototypes"],["Fastify","Excellent (2x Express)","Excellent","Easy-Medium","Performance-sensitive APIs"],["NestJS","Good","Required","Steep","Enterprise backends, large teams"],["Hono","Fastest (~14 KB)","Excellent","Easy","Edge computing, serverless"],["Next.js Routes","Good","Excellent","Easy","Full-stack Next.js projects"]]}],
+   quizzes:[
+    {q:"What is middleware in Express, and why is the pipeline pattern powerful?",opts:["Middleware is a database between the frontend and backend","Middleware is a function that runs between receiving a request and sending a response — multiple middleware run in sequence, each doing one job","Middleware is a UI component that sits between pages","Middleware is a caching layer that speeds up responses"],a:1,exp:"'Express's middleware system is its most powerful feature. Middleware functions execute in sequence for every request.' Example: logging → CORS → auth check → route handler. Each does one job and passes to the next."},
+    {q:"NestJS is described as 'the Angular of backends.' What does this comparison mean?",opts:["NestJS was built by Google, just like Angular","NestJS is heavily opinionated with required TypeScript and strict structure — just like Angular on the frontend","NestJS uses Angular components in the backend","NestJS and Angular share the same codebase"],a:1,exp:"'NestJS is the \"Angular of backends\": heavily opinionated, TypeScript-first, with a modular architecture.' Just as Angular is the most structured and opinionated frontend framework, NestJS is the most structured backend framework."},
+    {q:"Fastify has built-in JSON schema validation. What does this mean practically?",opts:["Fastify validates your JavaScript syntax before running","Fastify automatically rejects API requests that don't match the expected data shape, without adding extra libraries","Fastify validates JSON files in your project folder","Fastify checks your Zod schemas at compile time"],a:1,exp:"'Fastify has built-in JSON schema validation: you define what data your API expects, and Fastify automatically rejects any request that does not match, returning clear error messages.' Validation without adding Zod separately."},
+    {q:"When does the handbook say you do NOT need a separate backend?",opts:["You always need a separate backend for security","For small-to-medium Next.js projects, API routes can handle it. Separate backend needed for complex logic, multiple frontends, or WebSockets","You never need a separate backend if you use PostgreSQL","Only for apps with fewer than 1,000 users"],a:1,exp:"'If you use Next.js, its built-in API Routes and Server Actions can handle backend logic. For small to medium projects, this eliminates the need for a separate Express server. You only need a standalone backend when server logic is complex, multiple frontends share it, or you need WebSockets.'"},
+    {q:"Which backend framework is specifically designed for edge runtimes like Cloudflare Workers?",opts:["Express — the most compatible option","NestJS — runs everywhere","Hono — ultralight (~14 KB), designed for edge and serverless","Fastify — it has edge mode built in"],a:2,exp:"'Hono is ultralight and ultrafast, designed to run on edge runtimes (Cloudflare Workers, Deno Deploy, Bun). At under 14 KB, it has become the go-to choice for serverless functions and edge computing.'"},
+   ]},
+  {id:8,title:"Databases and ORMs",subtitle:"PostgreSQL, Supabase, Drizzle vs. Prisma",
+   granola:"Granola stores meeting notes, transcripts, and team data in a PostgreSQL database. Audio is processed locally and immediately discarded (privacy-first). The resulting structured notes persist in Granola's secure cloud database.",
+   content:"Every web app stores data persistently. The dominant type: relational databases — data in tables like spreadsheets, queried using SQL.\n\nPOSTGRESQL\nThe most recommended database in 2026: free, open-source, handles everything from a personal blog to a Fortune 500 app.\n\nSUPABASE\nA cloud platform giving you managed PostgreSQL with dashboard, authentication, file storage, and real-time features — the easiest way to get a production-ready database without managing servers.\n\nDRIZZLE vs PRISMA — The Core Either/Or\nAn ORM (Object-Relational Mapping) sits between your TypeScript code and the database. Instead of writing raw SQL, you write TypeScript and the ORM translates it.\n\nThese are the two dominant ORMs in 2026. They are either/or — you pick one per project.",
+   keyTerm:"ORM (Object-Relational Mapping)",keyTermDef:"A layer between your TypeScript code and the database. Instead of writing raw SQL, you write TypeScript (e.g. db.meetings.findMany()) and the ORM translates it into SQL queries. Drizzle and Prisma are the two dominant choices in 2026.",
+   rec:"Use PostgreSQL as your database. Supabase for managed PostgreSQL with zero server setup. Drizzle if you know SQL and need edge/serverless (~7 KB). Prisma if you're new to databases and want a higher-level API.",
+   tables:[{title:"Drizzle vs Prisma — head-to-head",headers:["Aspect","Drizzle","Prisma"],rows:[["Philosophy",'"If you know SQL, you know Drizzle." Close to SQL syntax.',"Abstracts SQL away. Describe what you want; Prisma figures out the query."],["Schema definition","In TypeScript — no special language","In .prisma files using Prisma Schema Language"],["Type safety","Inferred from TypeScript — updates instantly","Generated after running the prisma generate command"],["Bundle size","~7 KB — ideal for serverless/edge","~300+ KB (v6), smaller in v7"],["SQL knowledge needed","Helpful — queries mirror SQL syntax","Not required — API is higher-level"],["Best for","SQL-comfortable devs, edge/serverless","Teams new to databases, rapid prototyping"]]}],
+   quizzes:[
+    {q:"What is the core job of an ORM like Drizzle or Prisma?",opts:["To host your database in the cloud","To sit between your TypeScript code and the database — you write TypeScript and the ORM translates it into SQL","To validate data before it enters the database","To visualize your database tables in a dashboard"],a:1,exp:"'An ORM (Object-Relational Mapping) sits between your code and the database. Instead of writing raw SQL, you write TypeScript, and the ORM translates it.' You write db.meetings.findMany() and Drizzle/Prisma generates the SQL."},
+    {q:"Drizzle's schema is defined in TypeScript. Where is Prisma's schema defined?",opts:["Also in TypeScript","In .prisma files using Prisma Schema Language — a special file format","In YAML configuration files","In JSON Schema files"],a:1,exp:"Drizzle — 'Schema: Defined in TypeScript. No special language.' Prisma — 'Schema: Defined in .prisma files using Prisma Schema Language.' Prisma requires learning its custom schema syntax."},
+    {q:"Drizzle's type safety 'updates instantly.' Prisma requires an extra step — what is it?",opts:["Prisma requires restarting the dev server","Prisma requires running prisma generate to regenerate types after schema changes","Prisma requires deploying to production before types update","Prisma requires manually writing TypeScript interfaces"],a:1,exp:"Drizzle: 'Type Safety: Inferred from TypeScript. Updates instantly.' Prisma: 'Type Safety: Generated after running prisma generate command.' If you change your Prisma schema and forget to run generate, your TypeScript types will be out of sync."},
+    {q:"Drizzle is ~7 KB. Prisma is ~300+ KB. Why does bundle size matter for serverless/edge deployments?",opts:["Larger bundles cost more money on Vercel","Serverless functions have cold start times — larger bundles mean slower startup; 7 KB loads almost instantly","Bundle size only matters for frontend code","Prisma's size means it can do more things than Drizzle"],a:1,exp:"Drizzle is 'Ideal for serverless/edge' because of its tiny ~7 KB size. In serverless environments, every cold start loads the entire bundle — a 300 KB library adds significant startup latency compared to 7 KB."},
+    {q:"You're new to databases and want to prototype quickly without writing SQL. Which ORM does the handbook recommend?",opts:["Drizzle — it's the newer option","Prisma — 'best for teams new to databases, rapid prototyping' with a higher-level API that doesn't require SQL knowledge","Either — they're equivalent for beginners","Neither — use raw SQL for learning"],a:1,exp:"Prisma: 'Best For: Teams new to databases, rapid prototyping.' Its philosophy: 'Abstracts SQL away. Describe what you want, Prisma figures out the query.' Contrast with Drizzle: 'Best For: SQL-comfortable devs, edge/serverless.'"},
+   ]},
+  {id:9,title:"State management",subtitle:"Zustand, Redux, Jotai, and the two types of state",
+   granola:"In Granola, when your live transcript streams mid-meeting, that's client state — tracked without server round-trips (Zustand). When past meetings load from the server, that's server state — fetched, cached, and refreshed (TanStack Query).",
+   content:"'State' is any data your application needs to remember: Is the user logged in? Which tab is active? What meetings has the server returned?\n\nIn 2026, the ecosystem clearly separates state into TWO types — needing different tools.\n\nCLIENT STATE\nData that exists only in the browser. UI toggles, form inputs, user preferences.\nExamples: Is the sidebar open? Which filter is selected? Dark mode on/off?\nPrimary tool: ZUSTAND ('state' in German)\n\nSERVER STATE\nData from your backend/database. Needs fetching, caching, refreshing.\nExamples: User's meetings, notification count, team members.\nPrimary tool: TANSTACK QUERY\n\nZUSTAND\nMost popular client state library in 2026. Only ~1 KB. Near-zero boilerplate. Replaced Redux as the default for most React projects.\n\nTANSTACK QUERY\nHandles server state: fetching, caching, background refetching, retry logic, loading states, error handling.\nWithout it: 30–50 lines of boilerplate per request. 20 requests = 600–1000 lines of repetitive code.\n\nKEY INSIGHT: Zustand + TanStack Query work TOGETHER, not as alternatives. They solve completely different problems. The most common 2026 combination: Zustand + TanStack Query + React Hook Form.",
+   keyTerm:"Client state vs server state",keyTermDef:"Client state is UI-only data in the browser (use Zustand). Server state is data from your backend that needs fetching, caching, and refreshing (use TanStack Query). Different problems — don't use the same tool for both.",
+   rec:"Zustand for client state, TanStack Query for server state. They work together — not as alternatives. Do not try to manage server data with Zustand.",
+   tables:[{title:"The two types of state",headers:["Type","Definition","Examples","Primary Tool"],rows:[["Client State","Data that exists only in the browser — UI interactions, preferences","Is the sidebar open? Which filter is selected? Dark mode on/off?","Zustand"],["Server State","Data from your backend/database that needs fetching, caching, refreshing","User's meetings, notification count, team members","TanStack Query"]]}],
+   quizzes:[
+    {q:"'Dark mode on/off' — is this client state or server state?",opts:["Server state — it must be saved to the database so it persists","Client state — it exists only in the browser as a UI preference, managed by Zustand","Neither — CSS handles dark mode, not JavaScript","Both — it should be in Zustand AND synced to the server"],a:1,exp:"Dark mode on/off is Client State: 'Data that exists only in the browser: UI toggles, form inputs, user preferences.' It's a UI interaction that doesn't require fetching from a server."},
+    {q:"'User's meetings loaded from the Granola API' — is this client or server state? Which tool?",opts:["Client state — managed by Zustand","Server state — managed by TanStack Query (fetching, caching, refreshing)","Either tool works equally well","Build tool — it bundles the data at compile time"],a:1,exp:"Meeting data from an API is Server State: 'Data from your backend/database that needs fetching, caching, refreshing.' Primary tool: TanStack Query."},
+    {q:"Zustand and TanStack Query are often used together. Are they alternatives to each other?",opts:["Yes — you choose either Zustand OR TanStack Query per project","No — they solve completely different problems and are used together: Zustand for client state, TanStack Query for server state","Yes — TanStack Query replaces Zustand in modern projects","No — but you should choose only one to keep your codebase simple"],a:1,exp:"'They work TOGETHER, not as alternatives. Zustand handles client state. TanStack Query handles server state.' The most common 2026 combination is Zustand + TanStack Query + React Hook Form."},
+    {q:"What specific problem does TanStack Query solve that Zustand doesn't?",opts:["TanStack Query handles UI toggles and form inputs more elegantly","TanStack Query automatically handles loading states, caching, background refetching, retry logic, and request deduplication for server data","TanStack Query provides better TypeScript integration","TanStack Query manages CSS animations triggered by data changes"],a:1,exp:"Without TanStack Query you need 30–50 lines of boilerplate per request. 'TanStack Query automates all of it.' Zustand manages client-side UI data — it can't do server data fetching."},
+    {q:"You're showing a list of meetings (from the API) and tracking which is currently selected (UI only). How do you manage these?",opts:["Use Zustand for both — simpler to have one tool","Use TanStack Query for both","TanStack Query for the meeting list (server state) and Zustand for which is selected (client state)","Use Redux for the list and Context API for the selection"],a:2,exp:"Classic split: the meeting list from the API is Server State → TanStack Query. Which meeting is selected is a UI preference (Client State) → Zustand. 'Zustand handles client state. TanStack Query handles server state.'"},
+   ]},
+  {id:10,title:"Data fetching",subtitle:"TanStack Query, SWR, and why they matter",
+   granola:"When you open Granola and past meetings load instantly — TanStack Query serves cached data immediately, then silently refetches in the background. When you switch tabs and return, stale data refreshes automatically.",
+   content:"Without a data fetching library, every network request requires manually handling:\n• Loading state (show a spinner while fetching)\n• Error state (show error, allow retry)\n• Caching so you don't re-fetch data you already have\n• Stale data handling to silently refresh outdated data\n• Retry logic to automatically retry failed requests\n• Deduplication: 3 components needing the same data → only 1 network call\n• Memory leak prevention when a component unmounts before a request completes\n\nThat is 30–50 lines of boilerplate per request. In a medium app with 20 requests: 600–1,000 lines of repetitive, error-prone code.\n\nTANSTACK QUERY (formerly React Query)\nDominant data fetching library in 2026. Automates all of the above.\n• First visit: fetches, shows loading, caches result\n• Subsequent visits: instantly shows cached data while silently refetching fresh data\n• On failure: retries 3 times with exponential backoff automatically\n• Tab switch + return: automatically refetches stale data\n• Multiple components want same data: only ONE network call made\n\nSWR (Stale-While-Revalidate) by Vercel\nSimpler than TanStack Query with fewer configuration options — quicker to learn, less flexible for complex scenarios.\n\nKEY DISTINCTION: TanStack Query manages SERVER state. Zustand manages CLIENT state. Used together, not as alternatives.",
+   keyTerm:"Stale-While-Revalidate",keyTermDef:"A caching strategy: show the user old (stale) cached data immediately so they see something right away, then fetch fresh data in the background and update the display seamlessly. Both TanStack Query and SWR use this pattern.",
+   rec:"Use TanStack Query for server state — the 2026 default. SWR is a simpler alternative. Never manage server data with Zustand.",
+   tables:[],
+   quizzes:[
+    {q:"What does 'Stale-While-Revalidate' mean as a caching strategy?",opts:["Delete stale data while fetching fresh data, then show a spinner","Show old (stale) cached data immediately so the user sees something, then fetch fresh data in the background and update seamlessly","Wait for fresh data before showing anything","Reload the entire page to ensure fresh data on every visit"],a:1,exp:"'SWR (Stale-While-Revalidate): show stale (old cached) data immediately to the user, then revalidate (fetch fresh data) in the background and seamlessly update the display when fresh data arrives.' TanStack Query uses this same strategy."},
+    {q:"If three React components all need the same user data, how does TanStack Query handle the network requests?",opts:["It makes three separate requests — one per component","It makes only one network request and shares the result across all three components (deduplication)","It makes two requests — one for the first, one shared for the other two","It waits until all three components are rendered before making any request"],a:1,exp:"'If multiple components request the same data, it makes only one network call and shares the result.' This deduplication prevents a complex page from hammering your API with redundant requests."},
+    {q:"What happens when a component unmounts before a fetch completes — and how does TanStack Query help?",opts:["The fetch is automatically cancelled by the browser","You get a memory leak warning — the component tries to update state that no longer exists. TanStack Query handles this automatically","The data is cached and used when the component mounts again","Nothing happens — JavaScript handles this automatically"],a:1,exp:"The handbook lists 'Handle the case where the component unmounts before the request completes (otherwise you get a memory leak warning).' as one of the manual boilerplate requirements. TanStack Query handles this automatically."},
+    {q:"TanStack Query was 'formerly known as React Query' — why was it renamed?",opts:["Meta claimed the React trademark","It was renamed because it added support for Vue, Svelte, and other frameworks beyond React","Vercel acquired it and rebranded it","The name 'React Query' was too confusing"],a:1,exp:"'TanStack Query (formerly React Query, renamed when it added support for Vue, Svelte, and other frameworks)' — the rename reflects that it is no longer React-only."},
+    {q:"When should you choose SWR over TanStack Query?",opts:["When you need more configuration options and complex scenarios","When simplicity matters more — SWR is quicker to learn with fewer options, at the cost of less flexibility","When you use Vue instead of React","When you need automatic retry logic"],a:1,exp:"'SWR is simpler with fewer configuration options, which makes it quicker to learn but less flexible for complex scenarios.' Choose SWR when you want a simpler API; choose TanStack Query when you need more control."},
+   ]},
+  {id:11,title:"Validation with Zod",subtitle:"Ensuring data is the right shape",
+   granola:"Every API request Granola receives — creating a Folder, updating a template, adding a team member — is validated against a schema. Zod ensures malformed or malicious data is rejected cleanly before it ever touches the database.",
+   content:"Data validation: checking that data matches an expected shape before you use it. Critical at every boundary:\n• When a user submits a form\n• When your API receives a request\n• When you read environment variables at startup\n• When you process data from external services\n\nWithout validation, you trust data is correct. A user might submit an empty email. A malicious actor might send a negative price. Without validation, these silently corrupt your data or crash your app.\n\nZOD — Most popular validation library for TypeScript in 2026.\n\nYou define a schema (description of what your data should look like), then validate incoming data against it:\n• If data matches → Zod returns it with full TypeScript type safety\n• If it doesn't match → Zod returns detailed error messages explaining exactly what went wrong\n\nThe killer feature: TypeScript integration. One Zod schema gives you BOTH:\n• Runtime validation (catches bad data when code runs)\n• Compile-time type safety (TypeScript automatically knows the shape of validated data)\nNo duplication. No schemas getting out of sync with your types.\n\nWhere Zod is used:\n• Frontend: validating form inputs (with React Hook Form)\n• Backend: validating API request bodies\n• Startup: validating environment variables (catches misconfigurations before your app starts)\n• Contract: defining the shape shared between frontend and backend",
+   keyTerm:"Schema validation",keyTermDef:"Checking that data matches an expected structure before processing it. Zod lets you define the shape once and use it for both runtime validation AND TypeScript type inference — no duplication, no types getting out of sync.",
+   rec:"Use Zod — the 2026 default for TypeScript projects. One schema gives you both runtime validation and compile-time types. Avoid Yup and Joi for new projects.",
+   tables:[{title:"Validation library comparison",headers:["Library","TypeScript Integration","Best For"],rows:[["Zod","Excellent — infers types directly from schemas","TypeScript projects (default choice 2026)"],["Yup","Good — but types are defined separately from the schema (can get out of sync)","Legacy projects, Formik users"],["Joi","Weak","Non-TypeScript Node.js backends"]]}],
+   quizzes:[
+    {q:"What is Zod's 'killer feature' — and why does it matter for TypeScript projects?",opts:["Zod is the fastest validation library at runtime","One Zod schema gives you both runtime validation AND compile-time TypeScript types — no duplication, no types getting out of sync","Zod has the most readable error messages of any library","Zod automatically generates database schemas from your TypeScript types"],a:1,exp:"'The killer feature of Zod is TypeScript integration… you get runtime validation AND compile-time type safety from a single definition. No duplication.' With Yup, you define the schema AND the TypeScript type separately — they can drift apart."},
+    {q:"Zod can validate environment variables at startup. Why is this valuable?",opts:["It speeds up the startup process by caching valid values","It catches misconfigurations (like a missing API key) before the app starts, rather than discovering them at runtime when a feature fails","It automatically generates .env files","It encrypts sensitive environment variables"],a:1,exp:"'Validating environment variables at startup (catching misconfigurations before your app even starts).' Without this, a missing DATABASE_URL might only surface when a user tries to save something — a confusing runtime error. Zod catches it on startup."},
+    {q:"What is the weakness of Yup's TypeScript integration compared to Zod?",opts:["Yup has no TypeScript support at all","Yup types are defined separately from the schema — they can get out of sync as your code evolves","Yup is slower at runtime than Zod","Yup doesn't work with React Hook Form"],a:1,exp:"Yup: 'types are defined separately from the schema (can get out of sync).' You define the Yup schema for runtime validation AND separately write a TypeScript interface — update one and forget the other, they diverge. Zod eliminates this."},
+    {q:"A malicious user sends a request with a negative price. Where does Zod catch this — frontend, backend, or both?",opts:["Only on the frontend — that's where form validation happens","Only on the backend — frontend validation can be bypassed","Both — but backend validation is the critical one, since frontend data can always be manipulated","Neither — Zod only validates TypeScript types, not business logic"],a:2,exp:"'Never trust client-side data: Anything coming from the browser can be faked.' Zod on the backend is essential. Frontend Zod validation improves UX but any user can bypass it using dev tools. The backend Zod schema is the real security layer."},
+    {q:"The handbook lists four places where Zod schemas are used. Which is NOT one of them?",opts:["Validating form inputs on the frontend with React Hook Form","Validating API request bodies on the backend","Validating environment variables at startup","Validating database query results before writing to the ORM"],a:3,exp:"The four uses are: frontend form inputs (React Hook Form), backend API request bodies, environment variables at startup, and defining the contract between frontend and backend. 'Validating database query results before writing to the ORM' is not listed."},
+   ]},
+  {id:12,title:"Build tools",subtitle:"Vite, Turbopack, and what bundlers actually do",
+   granola:"When Granola engineers save a file and see changes in milliseconds — that's Vite's Hot Module Replacement. When they run 'npm run build' before deploying, the bundler packages TypeScript, JSX, and Tailwind classes into plain HTML, CSS, and JS the browser can read.",
+   content:"Your development code uses TypeScript (browsers don't understand it), JSX (browsers don't understand it), Tailwind classes (need CSS compilation), and npm imports (browsers can't read node_modules). None of this runs directly in a browser.\n\nA build tool translates your development code into browser-ready code:\n• Compiles TypeScript → JavaScript (strips types)\n• Converts JSX → regular JavaScript function calls\n• Processes Tailwind classes → a CSS file\n• Bundles hundreds of files → a few optimized files\n• Minifies (removes whitespace, shortens variable names)\n• Code-splits (browser only downloads what it needs for the current page)\n\nVITE (pronounced 'veet' — French for 'fast')\nDominant build tool in 2026. Created by Evan You (creator of Vue).\n• Development: serves files using native ES modules → changes appear in milliseconds (HMR)\n• Production: bundles everything using Rollup under the hood\n• The default for React/Vue/Svelte projects without a meta-framework\n\nTURBOPACK: Built into Next.js by Vercel. Handles builds automatically — you don't configure it.\nWEBPACK: Dominant bundler 2015–2022. More configurable but slower. Still in many legacy codebases.\nROLLUP: Specialized for building libraries (not applications). Used by Vite for production builds.\nESBUILD: Ultra-fast, written in Go. Used under the hood by Vite.",
+   keyTerm:"Hot Module Replacement (HMR)",keyTermDef:"When you change a file during development, only that changed module swaps in the browser instantly — no full page reload. Vite makes this nearly instantaneous. Dramatically speeds up the development feedback loop.",
+   rec:"You rarely configure build tools directly — your framework chooses. Plain React/Vue/Svelte → Vite. Next.js → Turbopack (automatic). Don't start new projects with Webpack.",
+   tables:[{title:"Build tool selection by scenario",headers:["Scenario","Build Tool","Do You Configure It?"],rows:[["Plain React/Vue/Svelte project","Vite","Yes (it's the default, minimal config needed)"],["Next.js project","Turbopack","No (Next.js decides for you)"],["Library published to npm","Rollup or tsup","Yes"],["Older/legacy project","Webpack","Inherited — don't switch unless needed"]]}],
+   quizzes:[
+    {q:"Why do you need a build tool at all? Why can't you send TypeScript and JSX files directly to the browser?",opts:["You could — but build tools make files load faster","Browsers only understand HTML, CSS, and plain JavaScript. TypeScript, JSX, and npm imports are development abstractions that must be translated first","Build tools are only needed for production — development works without them","Build tools are required by npm to install packages"],a:1,exp:"'You use TypeScript (browsers do not understand it), JSX (browsers do not understand it), Tailwind utility classes (need to be compiled into CSS), and import statements referencing npm packages (browsers cannot read from node_modules). None of this code can run in a browser directly.'"},
+    {q:"What is the difference between how Vite works in DEVELOPMENT versus PRODUCTION?",opts:["Vite works the same way in both — it always uses Rollup","Development: serves individual files using native ES modules for instant HMR. Production: bundles everything into optimized files using Rollup","Development: uses Turbopack for speed. Production: switches to Webpack for compatibility","Development: no build step. Production: runs TypeScript directly"],a:1,exp:"'During development, Vite serves files individually using native ES modules, so changes appear in the browser in milliseconds (HMR). For production, it bundles everything into optimized files using Rollup under the hood.'"},
+    {q:"If you're using Next.js, which build tool do you use — and do you need to configure it?",opts:["Vite — you configure it in vite.config.ts","Turbopack — built into Next.js, configured automatically; you don't need to set it up","Webpack — Next.js still uses Webpack under the hood","esbuild — Next.js uses esbuild directly"],a:1,exp:"'Turbopack is the build tool built into Next.js, created by Vercel. If you use Next.js, Turbopack handles your builds automatically.' From the selection table: Next.js project → Turbopack → 'No (Next.js decides for you).'"},
+    {q:"Rollup is listed as a build tool. What is its specific use case?",opts:["When building web applications that users interact with","When building libraries that other developers publish to npm","When deploying to Cloudflare Workers","When you need the fastest possible HMR in development"],a:1,exp:"'Rollup is specialized for building libraries rather than applications.' From the selection table: 'Library published to npm → Rollup or tsup.' Vite uses Rollup internally for its production builds of applications."},
+    {q:"What does 'minification' do during the build process — and why does it matter?",opts:["Minification compresses images to reduce their file size","Minification removes whitespace and shortens variable names, reducing file sizes so pages load faster for users","Minification encrypts your source code so competitors can't copy it","Minification splits your code into smaller chunks for lazy loading"],a:1,exp:"'Minifying code (removing whitespace and shortening variable names) to reduce file size' — smaller files mean faster downloads for users, especially on slow connections."},
+   ]},
+  {id:13,title:"Git and GitHub",subtitle:"Version control, branches, and collaboration",
+   granola:"Granola's entire codebase lives in a private GitHub repository. Every feature — like the MCP server or Spaces — goes through: branch → commit → pull request → review → merge. Nothing ships without this workflow.",
+   content:"Git is version control: an undo system for your entire project. Every meaningful change saved as a 'commit' (a snapshot). You can go back to any snapshot, create parallel 'branches' to experiment safely, and merge changes from multiple developers without overwriting each other.\n\nGitHub is a cloud platform hosting Git repositories online, adding collaboration features (pull requests, code review, issues), and connecting to deployment platforms like Vercel and Netlify.\n\nGIT CONCEPTS TABLE (see below)\n\nCRITICAL FILES:\n• .gitignore: tells Git which files to NEVER track. Two files that must ALWAYS be here:\n  - node_modules/ — too large, always recreatable with npm install\n  - .env — contains secret API keys (committing this exposes secrets publicly)\n\nFOR VIBE CODERS: Even if AI writes all your code, you need Git.\n• Vercel and Netlify connect to GitHub: push code → auto-deploy\n• Lovable and Cursor both integrate directly with GitHub\n• Connect your project from day one.",
+   keyTerm:"Pull request",keyTermDef:"A proposal to merge code from one branch into another. Others review and approve before merging. This is how professional teams ship code safely — no direct pushes to the main branch without review.",
+   rec:"Use Git from day one — even for solo projects. Connect your vibecoding tool to a GitHub repo immediately. Always add .env and node_modules to .gitignore before your first commit.",
+   tables:[{title:"Core Git concepts",headers:["Concept","What It Is","Analogy"],rows:[["Repository","Your project folder, tracked by Git","A filing cabinet for one project"],["Commit","A saved snapshot with a description","A save point in a video game"],["Branch","A parallel version for isolated work","A separate draft of a document"],["Pull Request","A proposal to merge changes — reviewed before merging","Submitting your draft for review"],["Push / Pull","Upload to / download from the cloud (GitHub)","Syncing with a shared drive"]]}],
+   quizzes:[
+    {q:"What is a Git 'branch' and why would you create one?",opts:["A backup copy of your entire computer's files","A parallel version of your codebase for isolated work — changes don't affect the main codebase until you merge","A different version of your app for different users","A GitHub feature for organizing repositories"],a:1,exp:"A branch is 'A parallel version for isolated work' — like 'A separate draft of a document.' You create a branch to work on a new feature without affecting the working main codebase. When ready, you merge it back."},
+    {q:"Why must your .env file NEVER be committed to Git?",opts:["Git can't handle the file format","It contains secret API keys and database passwords — committing it exposes these secrets to anyone who can see the repository",".env files are too large for Git to handle efficiently","Git overwrites .env files on every push"],a:1,exp:"'.env — contains secret API keys (committing this exposes your secrets publicly).' The .gitignore file must list .env to prevent this. Accidentally committed secrets must be rotated immediately."},
+    {q:"You deleted your node_modules folder by accident. How do you get it back?",opts:["Re-clone the entire repository from GitHub","Run 'npm install' — it reads package.json and downloads all dependencies fresh","Ask the person who first created the project to send you a copy","Restore it from your computer's trash"],a:1,exp:"'When someone shares a project with you, they do not include the node_modules folder. Instead, you run \"npm install\" and npm reads the package.json to download everything fresh.' The same applies if you delete it locally."},
+    {q:"How do deployment platforms like Vercel and Netlify connect to your code?",opts:["You manually upload files to their servers via FTP","They connect to your GitHub repository — when you push code to main, they automatically build and deploy","You email them your code as a ZIP file","They pull from your local computer via a desktop app"],a:1,exp:"'Most deployment platforms (Vercel, Netlify) connect to GitHub: push code, and they auto-deploy.' This Git-connected workflow is why the handbook says even vibe coders need Git."},
+    {q:"What is the difference between 'push' and 'pull' in Git?",opts:["Push downloads code; pull uploads code","Push uploads your local commits to GitHub; pull downloads the latest changes from GitHub to your local machine","Push creates a new branch; pull merges a branch","Push creates a commit; pull reviews it"],a:1,exp:"From the concepts table: 'Push / Pull: Upload to / download from the cloud' — like 'Syncing with a shared drive.' Push sends your local changes up to GitHub. Pull brings down changes others have made."},
+   ]},
+  {id:14,title:"Authentication and security",subtitle:"Auth providers, authorization, and security basics",
+   granola:"Granola uses OAuth (log in with Google) and issues JWTs for subsequent requests. It achieved SOC 2 Type 2 compliance — a rigorous third-party security audit. The handbook's warning applies directly: AI-generated code commonly has security vulnerabilities.",
+   content:"Authentication (authn): verifying who a user is — login.\nAuthorization (authz): determining what they can do — permissions.\nBoth are critical and where vibe-coded apps most commonly have security problems.\n\nAUTH PROVIDERS — never build auth from scratch (see table below)\n\nSIX SECURITY ESSENTIALS:\n\n1. NEVER trust client-side data\nAnything from the browser can be faked. Users can open dev tools and modify any data. Always validate on the server, even if you validated on the frontend.\n\n2. NEVER expose secrets in frontend code\nAPI keys, database passwords must NEVER appear in frontend code. Anyone can view your JavaScript in dev tools. Store secrets in .env files (server-only).\n\n3. NEVER store passwords in plain text\nAlways hash passwords using algorithms like bcrypt. Auth providers (Supabase Auth, Clerk) handle this automatically.\n\n4. ALWAYS use HTTPS\nEncrypts all data between browser and server. All modern deployment platforms provide HTTPS automatically.\n\n5. VALIDATE ALL inputs with Zod\nUse Zod on every piece of data entering your server. Prevents entire categories of attacks.\n\n6. USE AN ORM for database queries\nDrizzle and Prisma automatically prevent SQL injection attacks. Raw SQL requires manually sanitizing every input — easy to forget.\n\nWARNING: A 2025 study found 45% of AI-generated code contained security vulnerabilities. Functionality is NOT the same as security.",
+   keyTerm:"SQL injection",keyTermDef:"An attack where malicious SQL code is inserted via a form field and executed against your database. ORMs like Drizzle and Prisma prevent this automatically. Raw SQL requires manual sanitization — easy to forget.",
+   rec:"Never build auth from scratch. Use Supabase Auth (if using Supabase), Clerk (for great pre-built UI), or NextAuth (for full control). Always get security review on login, payment, and data handling flows before production.",
+   tables:[{title:"Auth provider comparison",headers:["Provider","Type","Best For"],rows:[["Supabase Auth","Built into Supabase","Projects using Supabase for the database"],["Clerk","Third-party service","Beautiful pre-built UI, fast setup"],["NextAuth / Auth.js","Open-source library","Full control, self-hosted"],["Firebase Auth","Google service","Mobile apps, Google ecosystem"]]}],
+   quizzes:[
+    {q:"A user submits a form on Granola's frontend. You validated with Zod in the browser. Is this sufficient?",opts:["Yes — frontend validation with Zod is sufficient","Yes — if the user sees a validation error they can't bypass it","No — frontend validation can be bypassed by anyone using browser dev tools; backend validation is the critical security layer","Only if the form doesn't handle payments"],a:2,exp:"Rule 1: 'Never trust client-side data: Anything coming from the browser can be faked. A user can open their browser developer tools and modify any data before it is sent to your server. Always validate and verify all data on the server, even if you already validated it on the frontend.'"},
+    {q:"Why must API keys never appear in frontend JavaScript code?",opts:["Frontend JavaScript runs slower, so secrets would slow it down","Anyone can view your frontend JavaScript using browser dev tools — secrets in frontend code are exposed to the entire internet","Frontend code is deleted after the user closes the browser","API keys only work on servers, so they'd be non-functional in the frontend"],a:1,exp:"Rule 2: 'API keys, database passwords, authentication secrets must NEVER appear in frontend code. Anyone can view your frontend JavaScript by opening developer tools.' Store secrets in .env files — server-side only."},
+    {q:"Why does the handbook recommend using an ORM for security reasons?",opts:["ORMs validate your TypeScript types at runtime","ORMs automatically prevent SQL injection attacks — raw SQL requires manually sanitizing every input, which is easy to forget","ORMs encrypt database contents automatically","ORMs prevent unauthorized users from accessing the database directly"],a:1,exp:"Rule 6: 'Use an ORM for database queries: ORMs like Drizzle and Prisma automatically prevent SQL injection attacks. If you write raw SQL, you must manually sanitize every input, which is easy to forget.'"},
+    {q:"What is the difference between authentication and authorization?",opts:["They are the same thing — different words for the same concept","Authentication verifies who you are (login); authorization determines what you're allowed to do (permissions)","Authentication is for users; authorization is for admin accounts","Authentication is frontend; authorization is backend"],a:1,exp:"'Authentication verifies who a user is (login). Authorization determines what they can do (permissions).' Example: authentication confirms you're a Granola user; authorization determines whether you can access a specific team's Spaces."},
+    {q:"The handbook says 45% of AI-generated code has security vulnerabilities. What action does it recommend?",opts:["Use only official framework code, not AI-generated code","Have someone with security experience review login systems, payment flows, and sensitive data handling before they go live","Add extra Zod validation everywhere to compensate","Use NextAuth instead of Clerk for better security"],a:1,exp:"'When your AI builds a login system, payment flow, or anything handling sensitive data, have someone with security experience review it before putting it in front of real users. Functionality is not the same as security.'"},
+   ]},
+  {id:15,title:"Deployment",subtitle:"Vercel, Netlify, Railway, and getting your app online",
+   granola:"Granola's web app deploys to Vercel — the company that created Next.js. Every merge to GitHub main auto-deploys via CI/CD. Every pull request gets a unique preview URL. Zero manual shipping steps.",
+   content:"Deployment puts your app on the internet. During development it runs on localhost (your computer only). Deployment puts it on a server with a public URL anyone can visit.\n\nIn 2026, the standard workflow: connect your GitHub repository → push code → platform automatically builds and deploys. Every push to main = new deployment. Every pull request = a unique preview URL to test before going live.\n\nVERCEL\nCreated Next.js. Optimized for frontend and full-stack JavaScript.\nBest for: Next.js projects, React SPAs, static sites, frontend-heavy projects.\nFree tier generous enough for personal projects and small businesses.\n\nNETLIFY\nFramework-agnostic (not tied to Next.js). Pioneered: automatic HTTPS, branch previews, form handling, serverless functions.\nBest for: Static sites, Astro/Nuxt/SvelteKit projects, sites with forms.\n\nRAILWAY\nFills a different niche: deploying backends, databases, full-stack apps. Full servers — run Express, PostgreSQL, Redis, background workers. Supports Docker.\nBest for: Standalone backends, database hosting, full-stack apps, background services.\n\nAWS / GOOGLE CLOUD / AZURE\nVastly more powerful AND vastly more complex. Setting up a basic web app on AWS requires configuring 5–10 different services.\nBest for: Enterprise apps, complex infrastructure, teams with DevOps expertise.",
+   keyTerm:"CI/CD",keyTermDef:"Continuous Integration / Continuous Deployment. Every code push automatically builds, tests, and deploys your app — no manual steps. Vercel and Netlify set this up automatically when you connect your GitHub repository.",
+   rec:"Use Vercel for Next.js and frontend projects. Use Railway for standalone backends or when you need persistent servers and databases. Avoid AWS until you've outgrown simpler platforms.",
+   tables:[{title:"Deployment platform comparison",headers:["Platform","Type","Difficulty","Free Tier","Best For"],rows:[["Vercel","Frontend + Serverless","Easy","Generous","Next.js, React, static sites"],["Netlify","Frontend + Serverless","Easy","Generous","Any framework, documentation sites, forms"],["Railway","Full-stack + Databases","Easy-Medium","Trial credits","Backends, databases, Docker apps"],["Render","Full-stack","Medium","Limited","Alternative to Railway"],["AWS / GCP / Azure","Everything","Hard","12-month trial","Enterprise, complex infrastructure"]]}],
+   quizzes:[
+    {q:"Railway fills a different niche than Vercel and Netlify. What can Railway do that they can't?",opts:["Railway deploys Next.js apps faster than Vercel","Railway gives you full servers where you can run Express, PostgreSQL, Redis, Docker — not just frontend/serverless apps","Railway has a better free tier than both","Railway automatically generates preview URLs for pull requests"],a:1,exp:"'Railway fills a different niche: deploying backends, databases, and full-stack applications. Unlike Vercel and Netlify which focus on frontend deployments, Railway gives you full servers where you can run Express, PostgreSQL, Redis, background job workers.'"},
+    {q:"You're building a Next.js app. Which platform does the handbook recommend?",opts:["Railway — it's the most powerful option","AWS — it scales the best","Vercel — created Next.js and is optimized specifically for it","Netlify — it's framework-agnostic and works with everything"],a:2,exp:"Vercel is 'Best For: Next.js, React, static sites.' The handbook notes 'Vercel is the company that created Next.js, and their platform is optimized for deploying frontend and full-stack JavaScript applications.'"},
+    {q:"Every pull request on Vercel and Netlify automatically gets something. What is it and why is it useful?",opts:["A cost estimate for running the deployment in production","An automated security scan report","A unique preview URL to test changes before they go live","An automatically generated changelog"],a:2,exp:"'Every pull request gets a unique preview URL so you can test changes before they go live.' This means you can share a real running version of your feature with stakeholders without affecting the production app."},
+    {q:"What is the key tradeoff with AWS/Google Cloud/Azure compared to Vercel or Railway?",opts:["Cloud providers are slower but cheaper","Cloud providers are vastly more powerful and flexible — but vastly more complex, requiring configuring 5–10 services for a basic app","Cloud providers have better free tiers and easier setup","Cloud providers only work with specific frameworks"],a:1,exp:"'The major cloud providers offer everything… but also vastly more complex. Setting up a basic web application on AWS from scratch involves configuring 5-10 different services.' Use Vercel or Railway first; move to cloud providers only when you outgrow them."},
+    {q:"What does CI/CD mean, and which platforms set it up automatically when you connect GitHub?",opts:["Code Integration / Code Deployment — only Railway supports this","Continuous Integration / Continuous Deployment — every push automatically builds and deploys. Vercel and Netlify set this up automatically","Continuous Integration / Continuous Deployment — but you must configure it manually in YAML files","Central Infrastructure / Central Deployment — only available on AWS"],a:1,exp:"CI/CD: 'Every code push automatically builds and deploys your app.' 'Every push to the main branch triggers a new deployment. Every pull request gets a unique preview URL.' Vercel and Netlify handle this automatically when you connect your GitHub repo."},
+   ]},
+  {id:16,title:"The Master Map",subtitle:"Every job, every tool, every decision in one place",
+   granola:"Granola's stack: TypeScript → Node.js → npm → React → Next.js → Tailwind → Next.js routes or Express → PostgreSQL → Drizzle/Prisma → Zustand → TanStack Query → Zod → Turbopack (via Next.js) → Vercel. This table maps Granola's entire tech universe.",
+   content:"This is the definitive reference from Chapter 16. 14 categories. Every job in a web app needs exactly one tool. Tools that do the same job are EITHER/OR choices.\n\nTHE MASTER MAP TABLE (see below)\n\nThe core rule: tools that do the same job are either/or. Tools that do different jobs work together.\n\nEither/or example: Drizzle OR Prisma — both are ORMs (same job).\nWorks together example: Zod AND Zustand AND TanStack Query — all different jobs (validation, client state, server state).\n\n'When in doubt, use this stack exactly. Don't mix and match unless you have a specific reason — each tool in this map was chosen because it plays well with the others.'",
+   keyTerm:"The 2026 default stack",keyTermDef:"TypeScript + Node.js + npm + React + Next.js + Tailwind CSS + Express or Next.js routes + PostgreSQL + Drizzle or Prisma + Zustand + TanStack Query + Zod + Vite + Vercel. What AI tools generate by default.",
+   rec:"Memorize this table. When you see unfamiliar tool names in AI-generated code, look them up here. The 2026 defaults are good choices — use them unless you have a specific reason not to.",
+   tables:[{title:"The Master Map — all 14 categories",headers:["Job","What It Does","Either/Or Options","2026 Default"],rows:[["Language","Programming language","JavaScript OR TypeScript","TypeScript"],["Runtime","Runs JS outside browser","Node.js, Deno, or Bun","Node.js"],["Package Manager","Manages dependencies","npm, pnpm, Yarn, Bun","npm"],["Frontend","Builds the UI","React, Vue, Angular, Svelte","React"],["Meta-Framework","Full-stack wrapper","Next.js, Nuxt, SvelteKit, Remix, Astro, or None","Next.js"],["Styling","Visual appearance","Tailwind, CSS Modules, styled-components, CSS","Tailwind CSS"],["Backend","Server logic + APIs","Express, Fastify, NestJS, Hono, Next.js Routes","Express or Next.js"],["Database","Data storage","PostgreSQL, MySQL, SQLite, MongoDB","PostgreSQL"],["ORM","DB access in TypeScript","Drizzle OR Prisma","Either"],["Client State","UI state management","Zustand, Redux, Jotai","Zustand"],["Server State","Data fetching + cache","TanStack Query OR SWR","TanStack Query"],["Validation","Data shape checking","Zod, Yup, Joi","Zod"],["Build Tool","Code transformation","Vite, Turbopack, Webpack","Vite"],["Deployment","Hosting","Vercel, Netlify, Railway, AWS","Vercel"]]}],
+   quizzes:[
+    {q:"MASTER MAP: You see 'Zustand' in AI-generated code. What job does it do?",opts:["Server State — data fetching and caching","Validation — checking data shape","Client State — UI state management","ORM — database access in TypeScript"],a:2,exp:"From the Master Map: 'Client State → UI state management → Zustand, Redux, Jotai → 2026 Default: Zustand.' Zustand manages client-side UI state — which panels are open, which tabs are active, etc."},
+    {q:"MASTER MAP: You see 'Drizzle' in AI-generated code. Can you also use 'Prisma' in the same project?",opts:["Yes — they do different jobs and work together well","No — they are both ORMs (same job: DB access in TypeScript). You pick one per project","Yes — but only if you use different databases for each","No — they require different versions of Node.js"],a:1,exp:"From the Master Map: 'ORM → DB access in TypeScript → Drizzle OR Prisma → Either.' Drizzle and Prisma are either/or choices — they do the same job. Never use both."},
+    {q:"MASTER MAP: Your AI generated a project with TanStack Query AND Zustand. Is this correct or redundant?",opts:["Redundant — choose one","Both are correct — they do different jobs: TanStack Query handles server state, Zustand handles client state","Only correct if using Next.js","Replace both with Redux — it handles both types of state"],a:1,exp:"From the Master Map: 'Client State → Zustand' and 'Server State → TanStack Query.' They do DIFFERENT jobs and work together. The handbook explicitly says: 'Together, they cover virtually every state management need.'"},
+    {q:"MASTER MAP: What is the 2026 default for the ORM job — and why is this unusual?",opts:["Drizzle — it's newer and faster","Prisma — it has more documentation","'Either' — unlike most categories, both Drizzle and Prisma are equally valid 2026 defaults","There is no default — always choose based on SQL experience"],a:2,exp:"From the Master Map: 'ORM → 2026 Default: Either.' This is unique — most categories have a clear default (TypeScript, React, Tailwind). The ORM category is genuinely split: 'Drizzle OR Prisma' — neither has decisively won."},
+    {q:"MASTER MAP: A teammate says 'let's use Vue AND React in our project.' Is this valid?",opts:["Yes — React for complex components, Vue for simpler ones","No — Frontend frameworks are either/or choices. You pick one per project: React OR Vue OR Angular OR Svelte","Yes — but only if you use a meta-framework like Next.js","Yes — this is called micro-frontend architecture"],a:1,exp:"From the Master Map: 'Frontend → Builds the UI → React, Vue, Angular, Svelte.' These are either/or choices — one per project. 'You do not combine React and Vue. They solve the same problem differently.'"},
+   ]},
+  {id:17,title:"Vibe coding and AI tools",subtitle:"The landscape, the tools, and the honest limits",
+   granola:"Granola was built by a small team moving fast — exactly where vibecoding shines. You're already using Lovable. This chapter maps the full tool landscape with skill levels for each, plus an honest account of where vibe coding falls short.",
+   content:"Vibe coding: building software by describing it in natural language to an AI. The AI generates real, custom, editable, deployable source code — not templates, not drag-and-drop.\n\nTHE FOUR-STEP WORKFLOW:\n1. Describe: 'Build a task management app where users can create projects, add tasks with due dates, and mark them complete. Use a clean modern design.'\n2. Generate: AI produces files, folders, database schemas, UI components, API routes, everything.\n3. Iterate: 'The sidebar is too wide. Add a dark mode toggle. Sort tasks by due date.'\n4. Deploy.\n\nThis is fundamentally different from:\n• Traditional coding: the developer writes every line\n• No-code tools: limited to pre-built templates and drag-and-drop — you hit walls quickly with custom logic\n\nVIBE CODING TOOLS TABLE (see below)\n\nWHY UNDERSTANDING THE ECOSYSTEM MATTERS:\nWhen your AI generates a Next.js project with Drizzle and Zustand, you should be able to say: 'Next.js handles both frontend (React inside) and backend (API routes). Drizzle talks to my database. Zustand manages shared UI state.' Without this, you can't debug problems, extend the project, or evaluate the AI's choices.\n\nTHE HONEST LIMITS:\nWorks brilliantly for: prototypes, personal projects, internal tools, MVPs.\nStill needs human expertise for: security review, performance optimization, architectural decisions, edge case handling.\nBest approach: vibe code the initial version, then have experienced developers review and harden for production.",
+   keyTerm:"MVP (Minimum Viable Product)",keyTermDef:"The simplest version of a product that works and can be tested with real users. Vibe coding excels at building MVPs quickly. Hardening for large-scale production still requires human expertise.",
+   rec:"Match the tool to your skill level. New to vibecoding → Bolt or Lovable (zero setup, immediate results). More technical → Cursor or Claude Code (more control). Most pros use multiple tools across the project lifecycle.",
+   tables:[{title:"The major vibe coding tools in 2026",headers:["Tool","Type","Best For","Skill Level"],rows:[["Cursor","AI-enhanced code editor (IDE)","Developers who want AI inside their familiar editor","Intermediate to Advanced"],["Claude Code","Terminal-based AI agent","Complex, multi-file projects; large codebase understanding","Intermediate to Advanced"],["Bolt.new","Browser-based app builder","Complete beginners; quick prototypes; no local setup needed","Beginner"],["Lovable","Browser-based app builder","Beautiful UI-focused apps; non-developers","Beginner"],["Replit","Online IDE with AI","Learning, prototyping, instant deployment, collaboration","Beginner to Intermediate"],["GitHub Copilot","AI autocomplete in VS Code","Line-by-line coding suggestions for developers","Intermediate"],["Windsurf","AI-enhanced code editor","Alternative to Cursor with different AI approach","Intermediate to Advanced"]]}],
+   quizzes:[
+    {q:"TOOLS TABLE: You're a non-developer and want to build something with no local setup. Which tool does the handbook recommend?",opts:["Cursor — it's the most powerful","Claude Code — it handles complex projects","Bolt.new or Lovable — browser-based, no setup, designed for beginners","GitHub Copilot — it autocompletes everything"],a:2,exp:"Bolt.new: 'Browser-based app builder' for 'Complete beginners; quick prototypes; no local setup needed' at 'Beginner' skill level. Lovable: 'Browser-based app builder' for 'Beautiful UI-focused apps; non-developers.'"},
+    {q:"TOOLS TABLE: What type of tool is Claude Code, and what is it best for?",opts:["A browser-based app builder best for non-developers","A terminal-based AI agent best for complex, multi-file projects and large codebase understanding","An AI autocomplete tool that works inside VS Code","An online IDE best for learning and collaboration"],a:1,exp:"Claude Code is a 'Terminal-based AI agent' best for 'Complex, multi-file projects; large codebase understanding' at 'Intermediate to Advanced' skill level."},
+    {q:"What is fundamentally different about vibe-coded apps versus no-code drag-and-drop builders?",opts:["Vibe coding is slower but produces cleaner code","Vibe coding generates real, custom, editable, deployable source code — not templates; no-code tools hit walls quickly with custom logic","No-code tools are more powerful because they don't require prompting","There is no meaningful difference — both produce the same output"],a:1,exp:"'Vibe coding generates real, custom code that you own, can modify, and can deploy anywhere.' Contrast with no-code: 'limited by the platform's capabilities. You hit walls quickly when you need custom logic.'"},
+    {q:"The handbook describes the 'honest limits' of vibe coding. Where does it fall short?",opts:["Brilliant for enterprise apps; falls short for prototypes","Brilliant for prototypes, personal projects, internal tools, and MVPs; needs human expertise for security review, performance, architecture, and edge cases","Brilliant for all apps equally — limits are only about developer skill","Brilliant for frontend apps only; falls short for any backend work"],a:1,exp:"'Vibe coding works brilliantly for prototypes, personal projects, internal tools, and MVPs. But production applications that handle sensitive data, process payments, or serve thousands of users still need human expertise for security review, performance optimization, architectural decisions, and edge case handling.'"},
+    {q:"TOOLS TABLE: Cursor and Windsurf are both 'AI-enhanced code editors.' How are they different?",opts:["Cursor is for React; Windsurf is for Vue","Cursor requires TypeScript; Windsurf works with JavaScript","They target the same skill level — Windsurf is described as 'an alternative to Cursor with a different AI approach'","Cursor is browser-based; Windsurf requires local installation"],a:2,exp:"Cursor: 'AI-enhanced code editor (IDE)' for 'Developers who want AI inside their familiar editor' at 'Intermediate to Advanced.' Windsurf: 'AI-enhanced code editor' as 'Alternative to Cursor with different AI approach' at 'Intermediate to Advanced.' Same category, different AI implementation."},
+   ]},
+  {id:18,title:"How to read error messages",subtitle:"The most common errors and what they mean",
+   granola:"When building on Granola's MCP or API and something breaks, the error is your first clue. 'ECONNREFUSED' means check your connection URL. Knowing these patterns is the highest-ROI skill in vibecoding.",
+   content:"Error messages are the biggest source of frustration for vibe coders. The Golden Rule: read the FIRST line of the error carefully. Copy it into Google or your AI tool. 90% of errors have been encountered and solved by others before you.\n\nFRONTEND ERRORS (see table below)\n\nBACKEND AND BUILD ERRORS (see table below)\n\nThe two-step process for any error:\n1. Read the first line — it tells you what went wrong and usually where\n2. Paste it into your AI tool or Google — 90% of errors are well-documented",
+   keyTerm:"Hydration mismatch",keyTermDef:"A Next.js error where the HTML generated on the server differs from what React tries to render in the browser. Common cause: browser extensions modifying the DOM, or code that behaves differently server-side vs client-side.",
+   rec:"Never stare at an error alone. Read line 1, then paste the full error into Claude or your AI tool. Learning to recognize these 8 patterns covers the vast majority of what you'll encounter.",
+   tables:[
+    {title:"Frontend errors",headers:["Error","Meaning","Fix"],rows:[["Cannot read properties of undefined","Data hasn't loaded yet — you're accessing a property before it exists","Add a loading check: if (data) { ... } before accessing data"],["Module not found","Import path is wrong, or the package isn't installed","Check for typos in the import path; run npm install [package-name]"],["Hydration mismatch","Server-generated HTML differs from what React renders in the browser","Common in Next.js — usually browser extensions or server/client code mismatch"],["Too many re-renders","Infinite update loop — the component keeps re-rendering itself","State update is in the component body, not inside an event handler"]]},
+    {title:"Backend and build errors",headers:["Error","Meaning","Fix"],rows:[["ECONNREFUSED","Cannot connect to the database or service at the specified address","Check your connection URL in .env; make sure the database service is running"],["Port already in use","Another process is already using that port number","Kill the other process or change the port in your config"],["CORS error","Browser blocked a request from one domain to another (cross-origin)","Configure CORS headers on your backend to allow your frontend's domain"],["npm ERR! peer dep","Package version conflict between dependencies","Try: npm install --legacy-peer-deps"]]}
+   ],
+   quizzes:[
+    {q:"You see 'Cannot read properties of undefined' in your React app. What does this mean and how do you fix it?",opts:["A package is missing — run npm install","Data hasn't loaded yet and you're trying to access it before it exists — add a loading check: if (data) { ... }","There's an infinite loop — move state update to an event handler","The server can't be reached — check your connection URL"],a:1,exp:"'Cannot read properties of undefined: Data hasn't loaded yet → Add a loading check: if (data) { ... }' This is one of the most common React errors — you're trying to read a property of something undefined because it hasn't been fetched or set yet."},
+    {q:"A 'CORS error' appears in your browser console. Where is the fix — frontend or backend?",opts:["Frontend — add headers to your fetch() requests","Backend — configure CORS headers to allow your frontend's domain","Both — CORS must be configured on both ends simultaneously","Neither — CORS is a browser setting the user must change"],a:1,exp:"'CORS error: Browser blocked cross-domain request → Configure CORS headers on backend.' CORS is a server-side configuration. The backend must explicitly allow requests from your frontend's domain."},
+    {q:"You see 'Hydration mismatch' in a Next.js project. What does this mean?",opts:["Your database query returned unexpected data","The HTML generated on the server differs from what React renders in the browser — often caused by browser extensions or server/client code differences","Your CSS failed to load","Your TypeScript types don't match between frontend and backend"],a:1,exp:"'Hydration mismatch: Server HTML differs from client render → Common in Next.js; usually browser extensions or server/client code mismatch.' Hydration is when React takes server-generated HTML and makes it interactive — a mismatch means the server and client disagree."},
+    {q:"'ECONNREFUSED' appears when you run your app locally. What does it mean?",opts:["A package failed to install — delete node_modules and run npm install","Cannot connect to the database or service — check your connection URL in .env and make sure the database is running","Too many connections to the server — reduce API requests","Your code has a syntax error — read the stack trace"],a:1,exp:"'ECONNREFUSED: Cannot connect to database or service → Check connection URL and that service is running.' Your app tried to connect to an address and nothing answered — either your DATABASE_URL in .env is wrong, or the database service isn't running."},
+    {q:"The handbook's Golden Rule for error messages. What is it?",opts:["Fix the last line of the error first — that's where the root cause is","Read the FIRST line carefully, then copy it into Google or your AI tool — 90% of errors have been solved by others","Always restart your dev server before debugging","Delete node_modules and reinstall before reading any error message"],a:1,exp:"'The Golden Rule: Read the FIRST line of the error carefully. Copy it into Google or your AI tool. 90% of errors have been encountered and solved by others before you.' The first line names the error type — don't skip it."},
+   ]},
+  {id:19,title:"Understanding project structure",subtitle:"What all those files and folders are",
+   granola:"When Granola engineers clone the repo, they immediately know where everything lives. This knowledge lets you direct your AI precisely — 'add this to the components folder' produces cleaner results than vague instructions.",
+   content:"When AI generates a project, it creates many files. Understanding what each does lets you navigate any vibecoded project.\n\nROOT CONFIGURATION FILES (see table below)\n\nCOMMON NEXT.JS FOLDER LAYOUT (see table below)\n\nCRITICAL RULES:\n• The .env / .env.local file stores secret environment variables. NEVER commit to Git. Add it to .gitignore BEFORE your first commit.\n• The node_modules folder contains all downloaded packages — can be hundreds of MB. NEVER edit it. NEVER commit it. If it breaks: delete it and run 'npm install'.\n\nHOW TO FIX 90% OF BROKEN PROJECTS:\n1. Read the first line of the error\n2. Delete node_modules and run npm install\n3. Clear .next or dist folders (build output)\n4. Restart the dev server (Ctrl+C, then npm run dev)\n5. Paste the error into your AI tool or Google",
+   keyTerm:".env file",keyTermDef:"A file storing secret environment variables — database URLs, API keys, auth secrets. NEVER commit to Git. Always add to .gitignore before commit #1. If someone gets this file, they have access to all your services.",
+   rec:"Learn this structure before making changes. Tell the AI which folder new code belongs in — this produces cleaner results. And always: .env goes in .gitignore before your very first commit.",
+   tables:[
+    {title:"Root configuration files",headers:["File","Purpose"],rows:[["package.json","Project ID card: name, dependencies, scripts (npm run dev, npm run build)"],["tsconfig.json","TypeScript settings: strictness, targets, paths"],[".env / .env.local","Secret environment variables (database URLs, API keys). NEVER commit to Git."],[".gitignore","Lists files Git should never track (node_modules, .env, build output)"],["tailwind.config.js","Tailwind CSS customization: custom colors, fonts, spacing"],["next.config.js","Next.js settings (if using Next.js)"],["drizzle.config.ts","Drizzle ORM settings (if using Drizzle)"]]},
+    {title:"Common Next.js folder layout",headers:["Folder","Contains"],rows:[["app/","Pages and layouts. Each subfolder = a route. app/about/page.tsx = /about"],["app/api/","Backend API routes. app/api/users/route.ts handles /api/users"],["components/","Reusable UI components (buttons, cards, forms, navigation)"],["lib/","Utility functions, database client, helper code"],["public/","Static files (images, fonts) served directly to the browser"],["db/ or drizzle/","Database schema and migration files"]]}
+   ],
+   quizzes:[
+    {q:"In a Next.js project, where do you put a new page at the URL '/dashboard'?",opts:["In components/ as Dashboard.tsx","In public/ as dashboard.html","In app/ as app/dashboard/page.tsx — file-based routing creates the route automatically","In app/api/ as app/api/dashboard/route.ts"],a:2,exp:"From the folder layout: 'app/: Pages and layouts. Each subfolder = a route. app/about/page.tsx = /about.' By the same pattern, app/dashboard/page.tsx automatically creates the /dashboard route."},
+    {q:"Where do you put a new backend API endpoint at '/api/meetings' in a Next.js project?",opts:["In lib/ as meetings.ts","In components/ as MeetingsAPI.tsx","In app/api/ as app/api/meetings/route.ts","In public/ as api/meetings.json"],a:2,exp:"From the folder layout: 'app/api/: Backend API routes. app/api/users/route.ts handles /api/users.' By the same pattern, app/api/meetings/route.ts handles /api/meetings."},
+    {q:"What is the difference between the 'components/' folder and the 'lib/' folder?",opts:["components/ is for TypeScript; lib/ is for JavaScript","components/ is for reusable UI elements (buttons, cards, forms); lib/ is for utility functions, database client, and helper code","components/ is for frontend code; lib/ is for backend code only","There is no meaningful difference"],a:1,exp:"'components/: Reusable UI components (buttons, cards, forms, navigation)' vs 'lib/: Utility functions, database client, helper code.' UI components go in components/, non-UI shared logic goes in lib/."},
+    {q:"Your Next.js project is broken. You've tried restarting the dev server. What is step 2 in the handbook's 5-step fix checklist?",opts:["Clear .next or dist build output folders","Paste the error into your AI tool","Delete node_modules and run npm install","Read the first line of the error"],a:2,exp:"The 5-step checklist: (1) Read the first line of the error. (2) Delete node_modules and run npm install. (3) Clear .next or dist folders. (4) Restart the dev server. (5) Paste error into AI/Google. Step 2 is 'Delete node_modules and run npm install.'"},
+    {q:"What does the 'public/' folder contain — and how are files in it accessed?",opts:["Private API credentials and secrets","Database migration scripts","Static files (images, fonts) served directly to the browser at the root URL (e.g., /logo.png)","TypeScript utility functions shared across the app"],a:2,exp:"'public/: Static files (images, fonts) served directly to browser.' Files in /public are accessible at the root URL — an image at public/logo.png is available at yoursite.com/logo.png. They are NOT processed by the build tool."},
+   ]},
+  {id:20,title:"Frequently asked questions",subtitle:"Answers to the questions everyone asks",
+   granola:"The handbook closes with the questions non-technical users ask most often. These are the distilled 'what do I actually need to know' answers — your quick reference for the most common confusions.",
+   content:"Q: Do I need to learn ALL of these tools?\nA: No. Understand what each does (this book covers that), but master only the stack you use. Most developers specialize in one stack (React + Next.js + Tailwind + Drizzle) and learn others only when needed.\n\nQ: Which tools does my AI pick for me?\nA: Most AI tools default to: TypeScript, React, Next.js or Vite, Tailwind CSS, and Drizzle or Prisma. This is a solid, mainstream stack.\n\nQ: What are React 'hooks'?\nA: Special functions in React that let components manage state (useState), run side effects (useEffect), and access shared data (useContext). They always start with 'use'. If you see useSomething in code, it is a hook.\n\nQ: What is an API?\nA: How two programs talk. Your frontend calls your backend's API to get data. Like a restaurant menu: it lists what you can order (available requests), and the kitchen (backend) delivers what you asked for.\n\nQ: My project is broken. What do I do?\nA: (1) Read the first line of the error. (2) Delete node_modules, run npm install. (3) Clear .next or dist folders. (4) Restart the dev server. (5) Paste the error into your AI tool or Google. This fixes ~90% of problems.\n\nQ: Should I learn to code if AI writes it for me?\nA: Yes, at least the basics. Understanding what AI generated helps you debug, communicate requirements clearly, and recognize when AI made a mistake. The concepts in this book put you miles ahead of treating AI code as a black box.",
+   keyTerm:"React hooks",keyTermDef:"Special functions in React that let components manage state (useState), run side effects (useEffect), and access shared data (useContext). They always start with 'use'. If you see useSomething in code, it is a hook.",
+   rec:"Bookmark this FAQ. When something breaks, run through the 5-step checklist before asking anyone for help. It covers ~90% of all issues.",
+   tables:[],
+   quizzes:[
+    {q:"What are React hooks and how do you always recognize one in code?",opts:["Functions that connect React to a database; they start with 'db'","Special React functions for managing state and side effects; they always start with 'use' (e.g. useState, useEffect)","CSS utility functions; they start with 'style'","Build tool plugins; they start with 'plugin'"],a:1,exp:"'Hooks are special functions in React that let components manage state (useState), run side effects (useEffect), and access shared data (useContext). They always start with \"use\". If you see useSomething in code, it is a hook.'"},
+    {q:"Does the handbook say you need to master ALL the tools in the ecosystem?",opts:["Yes — a professional vibe coder must understand every tool deeply","No — understand what each does, but master only the stack you use. Most developers specialize in one stack","Only master the tools in the Master Map — other chapters are optional","Yes, but learn one per month over time"],a:1,exp:"'No. Understand what each does (this book covers that), but master only the stack you use. Most developers specialize in one stack (React + Next.js + Tailwind + Drizzle) and learn others when needed.'"},
+    {q:"What is an API — and how does the restaurant analogy explain it?",opts:["An API is a database interface — the menu of tables and columns you can query","An API is how two programs communicate — like a restaurant menu listing what you can order (available requests) with the kitchen (backend) delivering what you ask for","An API is a frontend component library — pre-built UI elements you can use","An API is a security protocol — it controls who can access your server"],a:1,exp:"'An API is how two programs talk… Think of it as a restaurant menu: it lists what you can order, and the kitchen delivers what you asked for.' Your frontend calls the API; the backend (kitchen) processes and responds."},
+    {q:"Your project is broken and nothing obvious is wrong. What is the FIRST step in the handbook's fix checklist?",opts:["Delete node_modules and run npm install","Clear .next or dist build folders","Paste the error into your AI tool","Read the first line of the error message"],a:3,exp:"The 5-step checklist: '(1) Read the first line of the error.' Everything else follows from understanding what went wrong. The error message is always the starting point — don't skip it."},
+    {q:"The handbook says you should learn basic coding concepts even if AI writes all your code. Why?",opts:["Because AI will eventually stop being free","Understanding what AI generated helps you debug, communicate requirements, and recognize when AI made a mistake — treating AI code as a black box leaves you helpless when things go wrong","Because companies won't hire vibe coders without coding knowledge","So you can correct the AI's TypeScript type errors manually"],a:1,exp:"'Yes, at least the basics. Understanding what AI generated helps you debug problems, communicate requirements clearly, and recognize when AI made a mistake. You do not need to become a professional programmer, but the concepts in this book put you miles ahead of treating AI code as a black box.'"},
+   ]},
+];
+
+// STATE
+let cur=0, view='lesson', completed={}, quizState={}, qIdx={};
+
+function mk(){return String(MODULES[cur].id);}
+function cqi(){return qIdx[mk()]??0;}
+function qk(){return mk()+'_'+cqi();}
+function qa(){return quizState[qk()]||{};}
+function mod(){return MODULES[cur];}
+
+// RENDER NAV
+function renderNav(){
+  const nav=document.getElementById('nav');
+  nav.innerHTML='';
+  MODULES.forEach((m,i)=>{
+    const isDone=!!completed[String(m.id)];
+    const isActive=i===cur;
+    const btn=document.createElement('button');
+    btn.className='nav-btn'+(isActive?' active':'');
+    btn.onclick=()=>goTo(i);
+    const dot=document.createElement('div');
+    dot.className='nav-dot'+(isDone?' done':isActive?' active':'');
+    dot.textContent=isDone?'✓':String(m.id);
+    const lbl=document.createElement('div');
+    lbl.className='nav-label';
+    lbl.textContent=m.title;
+    btn.appendChild(dot);btn.appendChild(lbl);
+    nav.appendChild(btn);
+  });
+  const done=Object.keys(completed).length;
+  const pct=Math.round((done/MODULES.length)*100);
+  document.getElementById('sidebar-progress-label').textContent=`${done}/${MODULES.length} complete · ${pct}%`;
+  document.getElementById('progress-fill').style.width=pct+'%';
+}
+
+// RENDER TABLES
+function renderTables(tables){
+  const c=document.getElementById('tables-container');
+  c.innerHTML='';
+  (tables||[]).forEach(t=>{
+    const wrap=document.createElement('div');wrap.className='table-wrap';
+    const title=document.createElement('div');title.className='table-title';title.textContent=t.title;
+    const tbl=document.createElement('table');
+    const thead=document.createElement('thead');const tr=document.createElement('tr');
+    t.headers.forEach(h=>{const th=document.createElement('th');th.textContent=h;tr.appendChild(th);});
+    thead.appendChild(tr);tbl.appendChild(thead);
+    const tbody=document.createElement('tbody');
+    t.rows.forEach(row=>{
+      const tr2=document.createElement('tr');
+      row.forEach(cell=>{const td=document.createElement('td');td.textContent=cell;tr2.appendChild(td);});
+      tbody.appendChild(tr2);
+    });
+    tbl.appendChild(tbody);wrap.appendChild(title);wrap.appendChild(tbl);c.appendChild(wrap);
+  });
+}
+
+// RENDER LESSON
+function renderLesson(){
+  const m=mod();
+  document.getElementById('chapter-label').textContent=`Chapter ${m.id} of ${MODULES.length}`;
+  document.getElementById('chapter-title').textContent=m.title;
+  document.getElementById('chapter-subtitle').textContent=m.subtitle;
+  document.getElementById('quiz-tab-btn').textContent=`Quiz (${m.quizzes.length} questions)`;
+  document.getElementById('granola-text').textContent=m.granola;
+  document.getElementById('lesson-content').textContent=m.content;
+  renderTables(m.tables);
+  const recBox=document.getElementById('rec-box');
+  if(m.rec){recBox.style.display='';document.getElementById('rec-text').textContent=m.rec;}
+  else recBox.style.display='none';
+  document.getElementById('key-term-name').textContent=m.keyTerm;
+  document.getElementById('key-term-def').textContent=m.keyTermDef;
+  document.getElementById('ask-claude-btn').style.display='';
+  document.getElementById('claude-box').style.display='none';
+  document.getElementById('prev-btn').disabled=cur===0;
+  document.getElementById('quiz-btn').textContent=`Take quiz (${m.quizzes.length} questions) →`;
+}
+
+// RENDER QUIZ
+function renderQuiz(){
+  const m=mod();const qi=cqi();const q=m.quizzes[qi];const qas=qa();
+  // dots
+  const dotsEl=document.getElementById('q-dots');dotsEl.innerHTML='';
+  m.quizzes.forEach((_,i)=>{
+    const k=mk()+'_'+i;const s=quizState[k];const isA=i===qi;
+    const d=document.createElement('div');
+    d.className='q-dot'+(s?.answered?(s.correct?' correct':' wrong'):isA?' active':'');
+    d.onclick=()=>{qIdx[mk()]=i;renderQuiz();};
+    dotsEl.appendChild(d);
+  });
+  const counter=document.createElement('div');counter.id='q-counter';counter.textContent=`${qi+1}/${m.quizzes.length}`;
+  dotsEl.appendChild(counter);
+  // question
+  document.getElementById('q-text').textContent=q.q;
+  // options
+  const optsEl=document.getElementById('q-options');optsEl.innerHTML='';
+  q.opts.forEach((opt,i)=>{
+    const btn=document.createElement('button');
+    btn.className='q-opt'+(qas.answered?' answered':'');
+    if(qas.answered){
+      if(i===q.a)btn.classList.add('correct');
+      else if(i===qas.selected&&!qas.correct)btn.classList.add('wrong');
+    }
+    btn.textContent=opt;
+    btn.onclick=()=>selectAnswer(i);
+    optsEl.appendChild(btn);
+  });
+  // feedback
+  const fb=document.getElementById('q-feedback');
+  if(qas.answered){
+    fb.className='q-feedback '+(qas.correct?'correct':'wrong');
+    document.getElementById('q-feedback-title').textContent=qas.correct?'Correct!':'Not quite.';
+    document.getElementById('q-feedback-exp').textContent=q.exp;
+  }else{fb.className='q-feedback';fb.style.display='none';}
+  // buttons
+  const allAnswered=m.quizzes.every((_,i)=>quizState[mk()+'_'+i]?.answered);
+  document.getElementById('next-q-btn').style.display=(qas.answered&&qi<m.quizzes.length-1)?'':'none';
+  document.getElementById('next-ch-btn').style.display=(allAnswered&&cur<MODULES.length-1)?'':'none';
+  document.getElementById('complete-msg').style.display=(allAnswered&&cur===MODULES.length-1)?'':'none';
+}
+
+function selectAnswer(i){
+  if(qa().answered)return;
+  const m=mod();const qi=cqi();const q=m.quizzes[qi];
+  const correct=i===q.a;
+  quizState[qk()]={selected:i,answered:true,correct};
+  const allNowCorrect=m.quizzes.every((_,idx)=>{
+    if(idx===qi)return correct;
+    return quizState[mk()+'_'+idx]?.correct;
+  });
+  if(allNowCorrect)completed[mk()]=true;
+  renderNav();renderQuiz();
+}
+
+function nextQuestion(){
+  const m=mod();const qi=cqi();
+  if(qi<m.quizzes.length-1){qIdx[mk()]=qi+1;renderQuiz();}
+}
+
+function nextChapter(){
+  if(cur<MODULES.length-1)goTo(cur+1);
+}
+
+function prevChapter(){
+  if(cur>0)goTo(cur-1);
+}
+
+function goTo(i){
+  cur=i;
+  if(!qIdx[String(MODULES[i].id)])qIdx[String(MODULES[i].id)]=0;
+  setView('lesson');
+  renderNav();
+}
+
+function setView(v){
+  view=v;
+  document.getElementById('lesson-view').style.display=v==='lesson'?'':'none';
+  document.getElementById('quiz-view').style.display=v==='quiz'?'':'none';
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',i===(v==='lesson'?0:1)));
+  if(v==='lesson')renderLesson();
+  else renderQuiz();
+}
+
+async function askClaude(){
+  const m=mod();
+  document.getElementById('ask-claude-btn').style.display='none';
+  const box=document.getElementById('claude-box');box.style.display='';
+  const textEl=document.getElementById('claude-text');textEl.textContent='Thinking...';
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+      model:'claude-sonnet-4-20250514',max_tokens:1000,
+      system:'You are a vibecoding tutor for non-technical staff at Granola, an AI meeting notes startup in London. Explain concepts in plain English, always connecting them to how Granola works as a real product. Reference specific details from the Vibe Coder\'s Handbook (March 2026 Edition). Keep answers to 3-4 short paragraphs. No code unless asked.',
+      messages:[{role:'user',content:`Chapter: "${m.title}" — ${m.subtitle}\nGranola context: ${m.granola}\nHandbook rec: ${m.rec||'General chapter'}\n\nGive me a deeper, practical explanation of this chapter as it applies to Granola specifically.`}]
+    })});
+    const data=await res.json();
+    textEl.textContent=data.content?.find(b=>b.type==='text')?.text||'No response.';
+  }catch(e){textEl.textContent='Something went wrong. Try again.';}
+}
+
+function openGlossary(){
+  const list=document.getElementById('glossary-list');list.innerHTML='';
+  MODULES.forEach(m=>{
+    const item=document.createElement('div');item.className='gloss-item';
+    const term=document.createElement('div');term.className='gloss-term';term.textContent=m.keyTerm;
+    const def=document.createElement('div');def.className='gloss-def';def.textContent=m.keyTermDef;
+    item.appendChild(term);item.appendChild(def);list.appendChild(item);
+  });
+  document.getElementById('overlay').classList.add('open');
+}
+
+function closeGlossary(){
+  document.getElementById('overlay').classList.remove('open');
+}
+
+// INIT
+renderNav();
+renderLesson();
+</script>
+</body>
+</html>
