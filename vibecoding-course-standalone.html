@@ -115,7 +115,9 @@
   #back-to-lesson:hover { background: var(--bg2); }
   #quiz-actions { display: flex; gap: 8px; }
   .quiz-action-btn { padding: 7px 16px; border: none; border-radius: var(--radius); cursor: pointer; font-size: 12px; font-weight: 600; color: #fff; }
-  #next-q-btn { background: var(--green); display: none; }
+  #prev-q-btn { background: var(--text3); }
+  #prev-q-btn:hover { opacity: 0.8; }
+  #next-q-btn { background: var(--green); }
   #next-q-btn:hover { background: var(--green-dark); }
   #next-ch-btn { background: var(--green-dark); display: none; }
   #next-ch-btn:hover { opacity: 0.9; }
@@ -202,7 +204,8 @@
       <div id="quiz-nav">
         <button id="back-to-lesson" onclick="setView('lesson')">← Back to lesson</button>
         <div id="quiz-actions">
-          <button class="quiz-action-btn" id="next-q-btn" onclick="nextQuestion()">Next question →</button>
+          <button class="quiz-action-btn" id="prev-q-btn" onclick="prevQuestion()">← Prev</button>
+          <button class="quiz-action-btn" id="next-q-btn" onclick="nextQuestion()">Next →</button>
           <button class="quiz-action-btn" id="next-ch-btn" onclick="nextChapter()">Next chapter →</button>
           <div id="complete-msg">Course complete! 🎉</div>
         </div>
@@ -633,7 +636,8 @@ function renderQuiz(){
   }else{fb.className='q-feedback';fb.style.display='none';}
   // buttons
   const allAnswered=m.quizzes.every((_,i)=>quizState[mk()+'_'+i]?.answered);
-  document.getElementById('next-q-btn').style.display=(qas.answered&&qi<m.quizzes.length-1)?'':'none';
+  document.getElementById('prev-q-btn').style.display=qi>0?'':'none';
+  document.getElementById('next-q-btn').style.display=qi<m.quizzes.length-1?'':'none';
   document.getElementById('next-ch-btn').style.display=(allAnswered&&cur<MODULES.length-1)?'':'none';
   document.getElementById('complete-msg').style.display=(allAnswered&&cur===MODULES.length-1)?'':'none';
 }
@@ -651,6 +655,10 @@ function selectAnswer(i){
   saveState();renderNav();renderQuiz();
 }
 
+function prevQuestion(){
+  const qi=cqi();
+  if(qi>0){qIdx[mk()]=qi-1;saveState();renderQuiz();}
+}
 function nextQuestion(){
   const m=mod();const qi=cqi();
   if(qi<m.quizzes.length-1){qIdx[mk()]=qi+1;saveState();renderQuiz();}
